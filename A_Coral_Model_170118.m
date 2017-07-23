@@ -29,7 +29,7 @@ OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1000; % 1;                % run code on every x reefs, plus "keyReefs"
+everyx = 20; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % if everyx is one of 'eq', 'lo', 'hi' it
                                 % selects reefs for abs(latitude) bins [0,7],
                                 % (7, 14], or (14,90] respectively.
@@ -238,9 +238,6 @@ bleachParams.yearsRunningAverage = 1;       % Year to average for comparisions. 
 % BLEACHING
 bleachParams.sBleach = [0.3 0.3];         % Dropping to this value is bleaching   [0.22 .32]
 bleachParams.cBleach = [0.1 0.1];          % Dropping to this value is bleaching   [0.1 0.1]
-% RECOVERY [Not used as of 5/19/2017.  Since 1/10/17?]
-bleachParams.sRecoverFraction = [1.0 1.0]; % Symbiont fraction for recovery (b)    [0.27 0.3]
-bleachParams.cRecoverFraction = [0.6 0.99]; % Coral fraction for recovery (b)       [0.8 0.99]
 % New on 1/10/17
 bleachParams.sRecoverySeedMult = [4 4];     % Required for recovery.
 bleachParams.cRecoverySeedMult = [4 4];     % Required for recovery. Should be greater than cSeedThresholdMult
@@ -462,8 +459,8 @@ end
 % each worker.  Consider sending just the correct subset to each.
 
 %% RUN EVOLUTIONARY MODEL 
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -570,7 +567,7 @@ for parSet = 1:queueMax
         % Testing a separate routine to get bleaching from symbiont density.
         % append '_min' to function name for new yearly-minimum option.
         [bleachOneReef, dCov] = Get_bleach_freq(C, C_seed, S, S_seed, k, time, reefLatlon, ...
-                    TIME, dt, maxReefs, initIndex, startYear, bleachParams); %, bleachFrac);
+                    TIME, dt, initIndex, startYear, bleachParams); %, bleachFrac);
         if ~isempty(bleachOneReef)
             par_bEvents = [par_bEvents bleachOneReef];
         end

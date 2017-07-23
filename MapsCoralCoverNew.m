@@ -84,7 +84,6 @@ end
 function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     figure(n);
     if add
-        fprintf('Hold back on for fig %d to add %d points.\n', n, length(lons));
         hold on;
     else
         clf;
@@ -99,8 +98,6 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
 
     scatter(LONG,LAT,5, values) ; % plot bleaching events onto map
     
-    fprintf('After scatter call. %d\n', n);
-    
     if isempty(cMap)
         colormap default;
     else
@@ -112,7 +109,6 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     colorbar
     title(t)
     
-    fprintf('Before map print %d\n', n);
     if ~isempty(outFile)
         print('-dpdf', '-r200', outFile);
     end

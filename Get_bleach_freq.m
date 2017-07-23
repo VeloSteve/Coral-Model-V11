@@ -20,38 +20,19 @@
 %   4) Rebuild the output plots and other summary outputs?
 %%
 function [bEvents, dCov] = ...
-    Get_bleach_freq(C, C_seed, S, S_seed, k, time, latlon, TIME, dt, maxReefs, ...
+    Get_bleach_freq(C, C_seed, S, S_seed, k, time, latlon, TIME, dt, ...
                     initIndex, startYear, b)
-    persistent sBleachSum cBleachSum bBleachSum bMortSum;
-    persistent sRecSum massRecSum seedRecSSum seedRecCSum massActSum;
-    
-    if k == 1
-        sBleachSum = 0;
-        cBleachSum = 0;
-        bBleachSum = 0;
-        bMortSum = 0;
-        sRecSum = 0;
-       	massRecSum = 0;
-       	seedRecSSum = 0;
-       	seedRecCSum = 0;
-        massActSum = 0;
-    end
-
     %% Constants and options
     MASS = 1;
     BRAN = 2;
     typeName = {'MASS', 'BRAN'};
     
-    %% Put all adjustable parameters in a structure.
+    %% All adjustable parameters are passed in via a structure.
     % Massive before branching    
     % Define bleaching and recovery
-    %bleachFraction = [0.12 0.12];
     sBleach = b.sBleach;
     cBleach = b.cBleach;
     seedThresh = C_seed .* b.cSeedThresholdMult;
-% out of use    seedThreshRecover = C_seed .* b.cSeedRecoverMult;
-    %sRecoverFraction = b.sRecoverFraction;
-    % out of use cRecoverFraction = b.cRecoverFraction;
     yearsToMortality = b.yearsToMortality;
     yearsAverage = b.yearsRunningAverage;
     sRecoverySeedMult = b.sRecoverySeedMult;
@@ -191,17 +172,13 @@ function [bEvents, dCov] = ...
                 % Note: requireCoralRecovery is off, but implementation
                 % below is really "allow coral recovery". Fix naming or
                 % logic if enabled.
-                %sRec = Smin(i, cType) > preBleachSymbiont(cType) * sRecoverFraction(cType);
-                % 1/10/17 TEST XXX sRec = Smin(i, cType) > Smin(i-stepsPerYear, cType) * sRecoverFraction(cType);
                 sRec = true;
-                %cRec = requireCoralRecovery && Cmin(i, cType) > preBleachCoral(cType) * cRecoverFraction(cType);
              
                 massRec = massiveSeedMort && cType == MASS;
                 seedRecS = Smin(i, cType) > sRecoverySeedMult(cType)*S_seed(cType);
                 % debugC = Cmin(i, cType);
                 seedRecC = Cmin(i, cType) > cRecoverySeedMult(cType)*C_seed(cType);
                 if seedRecC && ((seedRecS && sRec ) || massRec)
-
                     sRecCount = sRecCount + sRec;
                     massRecCount = massRecCount + massRec;
                     seedRecSCount = seedRecSCount + seedRecS;
@@ -293,7 +270,6 @@ function [bEvents, dCov] = ...
 
                     % Set a higher-than actual value, since we want to be
                     % well above the current level to declare recovery.
-                    % out of use preBleachCoral(cType) = seedThreshRecover(cType);
                     
                     % Not setting anyBleached since this is not bleaching
                     % in the normal sense.
@@ -314,30 +290,6 @@ function [bEvents, dCov] = ...
     % bleaching.
     [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(1), 'REEF', 'BLEACHCOUNT', k, latlon, bleachCount);
     [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(1), 'REEF', 'BLEACHCOUNT8510', k, latlon, bleachCount8510);
-
-    % Diagnostic for how often coral and symbionts trigger bleaching.
-    %fprintf('For reef %4d, bleaching triggered by S/C/Both %2d %2d %2d Or coral mort %2d\n', k, sBleachCount, cBleachCount, bBleachCount, bMortCount);
-    sBleachSum = sBleachSum + sBleachCount;
-    cBleachSum = cBleachSum + cBleachCount;
-    bBleachSum = bBleachSum + bBleachCount; 
-    bMortSum = bMortSum + bMortCount;
-
-    sRecSum  = sRecSum + sRecCount;
-    massRecSum = massRecSum + massRecCount;
-    seedRecSSum = seedRecSSum + seedRecSCount;
-    seedRecCSum = seedRecCSum + seedRecCCount;
-    massActSum = massActSum + massActCount;
-    if k == maxReefs
-        fprintf('Summary of bleaching and mortality triggers:\n');
-        fprintf('Bleaching was triggered by S/C/Both %4d %4d %4d times and coral mortality %4d times\n', sBleachSum, cBleachSum, bBleachSum, bMortSum);
-        triggerSum = (sBleachSum + cBleachSum + bBleachSum + bMortSum)/100;
-        fprintf('By S/C/Both percent %5.2f%% %5.2f%% %5.2f%% and coral mortality %5.2f%% \n', sBleachSum/triggerSum, cBleachSum/triggerSum, bBleachSum/triggerSum, bMortSum/triggerSum);
-	
-        fprintf('Summary of recovery triggers:\n');
-        fprintf('Recovery was flagged by symbiont recovery and massive coral recovery %4d and %4d times and by symbiont and coral seed requirements %4d and %4d times\n', sRecSum, massRecSum, seedRecSSum, seedRecCSum);
-        fprintf('Recovery was dependent on massive coral recovery %4d times.\n', massActSum);
-    end
-
 
     % Check for mortality of both coral types
     mState(:, BOTH) = mState(:, MASS) & mState(:, BRAN);
