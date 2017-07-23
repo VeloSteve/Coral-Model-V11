@@ -1,9 +1,5 @@
-function [parSwitch, queueMax, chunkSize, toDoPart] = parallelInit(queueMax, multiPlot, toDo)
+function [parSwitch, queueMax, chunkSize, toDoPart] = parallelInit(queueMax, toDo)
     parSwitch = queueMax;
-    if multiPlot.active && multiPlot.panels > 2
-        parSwitch = 0;
-        queueMax = 1;
-    end
     queueMax = max(1, queueMax);
     % No point in having more threads than reefs.
     queueMax = min(queueMax, length(toDo));

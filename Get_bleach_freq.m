@@ -19,9 +19,9 @@
 %      bleaching and recovery thresholds which help match expected values?
 %   4) Rebuild the output plots and other summary outputs?
 %%
-function [bEvents, multiPlot, dCov] = ...
+function [bEvents, dCov] = ...
     Get_bleach_freq(C, C_seed, S, S_seed, k, time, latlon, TIME, dt, maxReefs, ...
-                    initIndex, startYear, b, multiPlot)
+                    initIndex, startYear, b)
     persistent sBleachSum cBleachSum bBleachSum bMortSum;
     persistent sRecSum massRecSum seedRecSSum seedRecCSum massActSum;
     
@@ -91,10 +91,6 @@ function [bEvents, multiPlot, dCov] = ...
     %  symbiont is considered just as good for recovery.  Do NOT pass this
     %  version of S back to other parts of the code where all columns may
     %  be needed.
-    if multiPlot.active && any(k == multiPlot.reefs)
-        % If S will be plotted, preserve a copy before the change.
-        SPlot = S;
-    end
     if scol > 2
         S(:, 1) = sum(S(:, 1:2:end), 2);
         S(:, 2) = sum(S(:, 2:2:end), 2);
@@ -139,12 +135,11 @@ function [bEvents, multiPlot, dCov] = ...
         Smin = trailingSameDateAverage(Smin, yearsAverage, stepsPerYear);
     end
 
-    % Just for diagnostics, at least for now:
-    if multiPlot.active
-        bMark = zeros(length(S), 2);
-        rMark = zeros(length(S), 2);
-        mMark = zeros(length(S), 2);
-    end
+    % This was for multiPlot - are they still needed?
+    bMark = zeros(length(S), 2);
+    rMark = zeros(length(S), 2);
+    mMark = zeros(length(S), 2);
+    
     % Flags for when corals are considered bleached and dead.
     bState = zeros(length(S), 4);
     mState = zeros(length(S), 6);
@@ -216,7 +211,7 @@ function [bEvents, multiPlot, dCov] = ...
                     bleached = false;
                     massiveSeedMort = false;
                     bState(i:end, cType) = 0;
-                    if multiPlot.active; rMark(i, cType) = 1; end;
+                    rMark(i, cType) = 1;
                     [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(i), typeName(cType), 'RECOVER', k, latlon);
                     if mort
                         mort = false;
@@ -231,7 +226,7 @@ function [bEvents, multiPlot, dCov] = ...
                         if (time(i) - lastBleach) >= yearsToMortality*365
                             mort = true;
                             mMark(i, cType) = 0.5;
-                            if multiPlot.active; mMark(i, cType) = 1; end;
+                            mMark(i, cType) = 1;
                             
                             [bEvents, eventCount] = ...
                                 makeBEvent(bEvents, eventCount, time(i), typeName(cType), 'MORTALITY', k, latlon);
@@ -259,7 +254,7 @@ function [bEvents, multiPlot, dCov] = ...
                         bleachCount8510 = bleachCount8510 + 1;
                     end
                     bleachCount = bleachCount + 1;
-                    if multiPlot.active; bMark(i, cType) = 1; end;
+                    bMark(i, cType) = 1;
                     preBleachSymbiont(cType) = Smin(i-stepsPerYear, cType);
                     % out of use preBleachCoral(cType) = Cmin(i-stepsPerYear, cType);
                     %fprintf('Reef %d, S = %0.2e, year = %d, %s bleached\n', ...
@@ -288,7 +283,7 @@ function [bEvents, multiPlot, dCov] = ...
                     if ~bleached
                         bleached = true;
                     end
-                    if multiPlot.active; mMark(i, cType) = 1; end;
+                    mMark(i, cType) = 1;
 
                     [bEvents, eventCount] = ...
                         makeBEvent(bEvents, eventCount, time(i), typeName(cType), 'MORTALITY', k, latlon);
@@ -446,72 +441,6 @@ function [bEvents, multiPlot, dCov] = ...
     
     % yearAgoFraction = S ./ circshift(S, stepsPerYear, 1);
     
-     
-    if multiPlot.active && any(k == multiPlot.reefs)
-        % Reset to a new figure if "panels" have been used on the plot
-        if multiPlot.count == multiPlot.panels
-            multiPlot.figure = multiPlot.figure + (~multiPlot.print);
-            multiPlot.count = 0;
-        end
-        
-        %cType = dType;    
-        startYr = multiPlot.startYr;  % for the plot - overall start of data is at startYear
-        endYr = multiPlot.endYr; % was 1920-2050
-        startComp = max(1, (startYr-startYear)*stepsPerYear);
-        endComp = (endYr-startYear)*stepsPerYear;
-
-        % Make a single figure instead of one per coral type:
-        % TODO - this uses the second "div" from above.  Compute a single
-        % best value.
-        %disp('In Get_bleach_freq plot.');
-        % Scale both symbionts to largest coral value
-        % Max values for each type:
-        maxC = max(C(startComp:endComp, :));
-        maxS = max(SPlot(startComp:endComp, :));
-        % single value: div = max(maxS) / max(maxC);
-        % separate symbiont scales, based on larger of the two coral
-        % values
-        maxC = max(maxC);
-        % 1/30/17 keep all symbionts on the same scale
-        maxS = max(maxS);
-        div = maxS ./ maxC;
-        div = round(1+log2(div));
-        div = round(2 .^ div, 1, 'significant');
-        SPlot = SPlot ./ div;
-
-            %fprintf('maxC = %0.2e, maxS = %0.2e, %0.2e, div = %d, %d\n', maxC, maxS, div);
-        titleText = sprintf('Reef %d, symbiont based', k);
-        multiPlot.count = multiPlot.count + 1;
-        % Note that only bEvents and multiPlot are returned from this
-        % function.  At this point it's okay to modify values for plotting
-        % purposes only.
-        mState(:, BOTH) = mState(:, MASS) & mState(:, BRAN);
-        bMark = bMark - (bMark == 0);
-        rMark = rMark - (rMark == 0);
-        mMark = mMark - (mMark == 0);
-
-        % Note hardwired "true" as 2nd argument forces output each time.
-        % Starting 2/17/17, flag each set of y values with true for a 
-        % line on the left axis and false for symbols scaled right.
-        graphCompare(multiPlot, true, k, titleText, '', ...
-            ((startComp:endComp)/stepsPerYear)+1860, 'index', ...
-            C(startComp:endComp, MASS), 'Massive Coral' , true, ...
-            C(startComp:endComp, BRAN), 'Branching Coral' , true, ...
-            SPlot(startComp:endComp, MASS), strcat('Mass Symb / ', num2str(div)), true, ...
-            SPlot(startComp:endComp, BRAN), strcat('Bran Symb / ', num2str(div)), true, ...
-            SPlot(startComp:endComp, MASS+2), strcat('Alt Mass Symb / ', num2str(div)), true, ...
-            SPlot(startComp:endComp, BRAN+2), strcat('Alt Bran Symb / ', num2str(div)), true, ...
-            linspace(5000000, 5000000, endComp-startComp+1), 'Massive seed x5', true, ...
-            linspace(500000, 500000, endComp-startComp+1), 'Branching seed x5', true, ...
-            bMark(startComp:endComp, MASS), 'Mass Bleaching', false, ...
-            rMark(startComp:endComp, MASS), 'Mass Recovery', false, ...
-            mMark(startComp:endComp, MASS), 'Mass Mortality', false, ...
-            bMark(startComp:endComp, BRAN), 'Bran Bleaching', false, ...
-            rMark(startComp:endComp, BRAN), 'Bran Recovery', false, ...
-            mMark(startComp:endComp, BRAN), 'Bran Mortality', false ...           
-          );
-    end
-
 end
 
 %% Convert a timestamp (in days) to a whole number year.  If zero is provide,

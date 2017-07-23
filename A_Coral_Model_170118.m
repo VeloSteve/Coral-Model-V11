@@ -29,7 +29,7 @@ OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 10; % 1;                % run code on every x reefs, plus "keyReefs"
+everyx = 1000; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % if everyx is one of 'eq', 'lo', 'hi' it
                                 % selects reefs for abs(latitude) bins [0,7],
                                 % (7, 14], or (14,90] respectively.
@@ -37,9 +37,7 @@ allPDFs = false;                % if false, just prints for keyReefs.
 neverPlot = false;               % For optimization runs, turn off all plotting.
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
-% Control temperatures which are only for testing:
-fakeTemps = false;
-fake = [-11.5 0 2.5 -1];
+
 % Super symbiont options
 newMortYears = 0; % If true, save a fresh set of "long mortality" years based on this run.
 superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
@@ -53,7 +51,7 @@ superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
                 % 6 = use fixed delta like option 0, but start according to
                 %     first year of bleaching.
      
-superAdvantage = 0;           % Degrees C above native symbionts.
+superAdvantage = 1.123;           % Degrees C above native symbionts.
 startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
 
 % If this code is called from a script, we want some of the variables above
@@ -152,26 +150,6 @@ keyReefs = unique(keyReefs);
 % too good to be true matches: keyReefs = [561 574 762 1271 1298 1299 1325 1326 1228 402];
 %keyReefs = []; % can be set empty to minimize plotting and other work for some tests
 
-%% Settings for "multiPlot" which accumulates survival graphs for the key
-% reefs into a set of figures.  This is not compatible with multithreaded
-% processing, and so should typically done with a large "everyx" value.
-% If active, the optimizer will define "optimizerMode" and set the
-% multiPlot.active value.
-if ~exist('optimizerMode', 'var')
-    multiPlot.active = false;
-end
-multiPlot.figure = 5;  % first figure - more are made if needed, increasing by one.
-multiPlot.showOld = true;
-multiPlot.showNew = true;
-multiPlot.panels = 1; % 1 per reef % for all reefs in one: multiPlot.reefCount*(multiPlot.showNew + multiPlot.showOld)
-multiPlot.count = 0;
-multiPlot.keyReefs = keyReefs;  % special subset for quick access
-multiPlot.reefs = unique(keyReefs);  % Add other reefs to plot if desired
-multiPlot.reefCount = length(multiPlot.reefs);
-multiPlot.startYr = 1860; % 1950; % 2030; %1950; %1900;
-multiPlot.endYr = 2100; % 2060; % 2040; % 2060; % 1920; % 2060;
-multiPlot.topTitle = 'Set actual value below!';
-multiPlot.print = true;
 
 %% Use of parallel processing on the local machine.
 % no argument: uses the existing parallel pool if any.
@@ -277,7 +255,6 @@ if exist('optimizerMode', 'var') && exist('optimizerBleachParams', 'var')
     bleachParams = updateIfGiven(bleachParams, optimizerBleachParams);
 end
     
-multiPlot.topTitle = sprintf('Bleaching Comparison for %s, E = %d', RCP, E);
 
 
 %% Some useful paths and test strings to be used later.
@@ -286,10 +263,7 @@ pdfDirectory = strcat(dataset, RCP,'_E',num2str(E), '_OA',num2str(OA),'_NF',num2
     '_sM',num2str(superMode),'_sA',num2str(superAdvantage),'_',dateString,'_figs/');
 %pdfDirectory = strcat(dataset, RCP,'_E',num2str(E), '_OA',num2str(OA),'_NF',num2str(NF),'_',dateString,'_figs/');
 mkdir(outputPath, pdfDirectory);
-multiPlot.out = strcat(outputPath, strrep(pdfDirectory, '_figs', '_comps'));
-multiPlot.keyOut = strcat(outputPath, strrep(pdfDirectory, '_figs', '_keycomps'));
-mkdir(multiPlot.out);
-mkdir(multiPlot.keyOut);
+
 mkdir(strcat(outputPath, 'bleaching'));
 % Map directory is used for maps, but also for miscellaneous text and
 % plotted output, since it is the least cluttered of the directories.
@@ -455,7 +429,7 @@ timeSteps = length(time) - 1;      % number of time steps to calculate
 
 %% Split up reefs into batches for parallel computation.  With one core
 %  specified, it simply uses one batch.
-[parSwitch, queueMax, chunkSize, toDoPart] = parallelInit(queueMax, multiPlot, toDo);
+[parSwitch, queueMax, chunkSize, toDoPart] = parallelInit(queueMax, toDo);
 
 % Several arrays are built in the parallel loop and then used for
 % later analysis.  Parfor doesn't like indexing into part of an array.  The
@@ -488,8 +462,8 @@ end
 % each worker.  Consider sending just the correct subset to each.
 
 %% RUN EVOLUTIONARY MODEL 
-parfor (parSet = 1:queueMax, parSwitch)
-%for parSet = 1:queueMax
+%parfor (parSet = 1:queueMax, parSwitch)
+for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -498,8 +472,6 @@ parfor (parSet = 1:queueMax, parSwitch)
     % TODO see if length(toDoPart(parSet)) should be used instead of
     % chunkSize.
     par_bEvents = [];
-    mP = multiPlot;
-    mP.figure = mP.figure + 40*parSet;
     par_SST = SST_chunk{parSet};
     par_Omega = Omega_chunk{parSet};
     par_LatLon = LatLon_chunk{parSet};
@@ -539,11 +511,6 @@ parfor (parSet = 1:queueMax, parSwitch)
         %SelV = [1.25 1]*psw2*var(SSThist_anom(:))
 
         % Initialize symbiont genotype, sym/coral population sizes, carrying capacity
-        % For testing, just repeat the first year! 
-        %XXX
-        if fakeTemps
-            temp = repmat(temp(1:12/dt),years,1);
-        end
         
         %ssss = findDateIndex(strcat('14-Jan-', num2str(par_SuppressYears(1+ k - par_kOffset)-10)), strcat('16-Jan-',num2str(par_SuppressYears(1+ k - par_kOffset)-10)), time);
         %eeee = findDateIndex(strcat('14-Dec-', num2str(par_SuppressYears(1+ k - par_kOffset))), strcat('16-Dec-',num2str(par_SuppressYears(1+ k - par_kOffset))), time);
@@ -552,47 +519,28 @@ parfor (parSet = 1:queueMax, parSwitch)
             E, vM, SelV, superMode, superAdvantage, startSymFractions, ...
             [suppressSuperIndexM10(k) suppressSuperIndex(k)], k);
 
-        
-        %% AFTER population initialization, change the temp profile to see effects on growth
-                % Step functions, again just testing TODO: remove for actual use.
-        % original steps: +1.5, -1, +2
-        if fakeTemps
-            temp(1:5800) = temp(1:5800) + fake(1);
-            temp(5800:11500) = temp(5800:11500) + fake(2);
-            temp(11500:17300) = temp(11500:17300) + fake(3);
-            temp(17300:end) = temp(17300:end) +fake(4);
-            % Yet another test - linear variation.
-            %{
-            m = mean(SSThist)
-            temp = linspace(m-5, m+5, length(temp))';
-            %}
-        end
+              
 
-        
-
-        %% MAIN LOOP: Integrate Equations 1-5 through 2100 using Runge-Kutta method
         if length(suppressSuperIndex) > 1
             ssi = suppressSuperIndex(k);
         else
             ssi = suppressSuperIndex;
         end
         %fprintf('super will start at index %d\n', ssi);
-        %[S, C, ri, gi, vgi, origHist, superHist, origEvolved] = test_timeIteration(timeSteps, S, C, dt, ri, temp, OA, omega, vgi, gi, ...
-
-        [S, C, ri, gi, vgi, origHist, superHist, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ri, temp, OA, omega, vgi, gi, ...
+        %% MAIN LOOP: Integrate Equations 1-5 through 2100 using Runge-Kutta method
+        [S, C, ri, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ri, temp, OA, omega, vgi, gi, ...
                     MutVx, SelVx, C_seed, S_seed, ssi, ...
                     superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
-                
+        % These, with origEvolved, compare the average native and
+        % supersymbiont genotypes with the evolved state of the native
+        % symbionts just before the supersymbionts are introduced.
+        origHist = gi(1,1);
+        superHist = gi(1,3);
+
         par_HistSuperSum = par_HistSuperSum + superHist;
         par_HistOrigSum = par_HistOrigSum + origHist;
         par_HistOrigEvolvedSum = par_HistOrigEvolvedSum + origEvolved;
-        %{
-        Not valid in parallel mode.
-        if k == 420 && E == 0 && strcmp(RCP, 'rcp85')
-            save('Reef420_RCP85_E0_V9', 'k', 'C', 'S', ...
-            'E','OA', 'reefLatlon','RCP');
-        end
-        %}
+
         if any(keyReefs == k)  % temporary genotype diagnostic
             %{
             suff = '';
@@ -621,8 +569,8 @@ parfor (parSet = 1:queueMax, parSwitch)
         
         % Testing a separate routine to get bleaching from symbiont density.
         % append '_min' to function name for new yearly-minimum option.
-        [bleachOneReef, mP, dCov] = Get_bleach_freq(C, C_seed, S, S_seed, k, time, reefLatlon, ...
-                    TIME, dt, maxReefs, initIndex, startYear, bleachParams, mP); %, bleachFrac);
+        [bleachOneReef, dCov] = Get_bleach_freq(C, C_seed, S, S_seed, k, time, reefLatlon, ...
+                    TIME, dt, maxReefs, initIndex, startYear, bleachParams); %, bleachFrac);
         if ~isempty(bleachOneReef)
             par_bEvents = [par_bEvents bleachOneReef];
         end

@@ -1,10 +1,8 @@
 %#codegen
-function [S, C, ri, gi, vgi, origHist, superHist, origEvolved] = timeIteration(timeSteps, S, C, dt, ri, ...
+function [S, C, ri, gi, vgi, origEvolved] = timeIteration(timeSteps, S, C, dt, ri, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSuperIndex, ...
         superSeedFraction, oneShot, con)
     
-    origHist = gi(1);
-    superHist = 0.0;
     origEvolved = 0.0;
     for i = 1:timeSteps
         rm  = con.a*exp(con.b*temp(i,1)) ; % maximum possible growth rate at optimal temp
@@ -77,7 +75,6 @@ function [S, C, ri, gi, vgi, origHist, superHist, origEvolved] = timeIteration(t
             % Important - enhanced genotype is set at the beginning of run,
             % but if E=1 it will have decayed.  Reset here!
             gi(i+1, 3:4) = gi(1, 3:4);
-            superHist = gi(1,3);
             origEvolved = gi(i, 1);
         end
     end  % End of time iterations for one area
