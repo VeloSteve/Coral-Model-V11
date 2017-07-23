@@ -11,7 +11,7 @@
 % Performance and structural changes 9/2016 by Steve Ryan (jaryan)  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% SET WORKING DIRECTORY AND PATH 
+%% SET WORKING DIRECTORY AND PATH
 timerStart = tic;
 Computer = 3; % 1=office; 2=laptop; 3=Steve; 4=Steve laptop; 0 = autodetect
 [basePath, outputPath, sstPath, SGPath, matPath, Computer, defaultThreads] ...
@@ -50,8 +50,8 @@ superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
                 %     options 3 and 4.
                 % 6 = use fixed delta like option 0, but start according to
                 %     first year of bleaching.
-     
-superAdvantage = 1.123;           % Degrees C above native symbionts.
+
+superAdvantage = 0.123;           % Degrees C above native symbionts.
 startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
 
 % If this code is called from a script, we want some of the variables above
@@ -61,9 +61,9 @@ if exist('scriptVars', 'var')
     % Only these variables are supported now, but it's easy to add more.
     if isfield(scriptVars, 'RCP') RCP = scriptVars.RCP; end;
     if isfield(scriptVars, 'E') E = scriptVars.E; end;
-    if isfield(scriptVars, 'OA') OA = scriptVars.OA; end; 
-    if isfield(scriptVars, 'superMode') superMode = scriptVars.superMode; end; 
-    if isfield(scriptVars, 'superAdvantage'); superAdvantage = scriptVars.superAdvantage; end; 
+    if isfield(scriptVars, 'OA') OA = scriptVars.OA; end;
+    if isfield(scriptVars, 'superMode') superMode = scriptVars.superMode; end;
+    if isfield(scriptVars, 'superAdvantage'); superAdvantage = scriptVars.superAdvantage; end;
     fprintf('After update in model E = %d, OA = %d, RCP = %s Mode = %d Adv = %d \n', E, OA, RCP, superMode, superAdvantage);
 end
 
@@ -71,7 +71,7 @@ end
 if superMode >= 3 && superMode <=5
     fn = strcat('longMortYears_', RCP, '_', num2str(E));
     load(fn, 'longMortYears');
-    suppressSuperUntil = longMortYears; 
+    suppressSuperUntil = longMortYears;
     % XXX - next two lines for testing only!!!
     %subFrom = (suppressSuperUntil > 1882);
     %suppressSuperUntil = suppressSuperUntil - 20*subFrom;
@@ -79,14 +79,14 @@ if superMode >= 3 && superMode <=5
 elseif superMode >= 6
     fn = strcat('firstBleachYears_', RCP, '_', num2str(E));
     load(fn, 'firstBleachYears');
-    suppressSuperUntil = firstBleachYears; 
-    assert(length(suppressSuperUntil) == maxReefs, 'By-year symbiont starts should have a start year for every reef.');   
+    suppressSuperUntil = firstBleachYears;
+    assert(length(suppressSuperUntil) == maxReefs, 'By-year symbiont starts should have a start year for every reef.');
 else
     suppressSuperUntil = 2035*ones(maxReefs, 1); % Until this date set S(:, 3:4) to zero.  Use 1861 to start from the beginning.
 end
 %superInitYears = [2025 2035]; % Years from which adaptation temp is selected.
 superSeedFraction = 10^-4;      % Fraction of S_seed to use for seeding super symbionts.
-% sizing notes: for massive, 
+% sizing notes: for massive,
 % KSm = 3000000
 % seed = 100000
 % KSm/seed = 30
@@ -191,7 +191,7 @@ else
     dataset = 'HadISST';
 end
 
-% NORMALIZATION FACTOR 
+% NORMALIZATION FACTOR
 NF = 1 ; % modify reach 10% bleaching freq bn 1985-2010
 
 % Selection of variance column from psw2_new
@@ -233,8 +233,6 @@ initYear = '2001';  % SelV and hist will be initialized from 1861 to this year.
 %  variable.
 % Values in the comments to the right were used for 4PM 1/9/2017 outputs.
 % Keep for comparison.
-% Affects both, but currently kept at 1
-bleachParams.yearsRunningAverage = 1;       % Year to average for comparisions.     1
 % BLEACHING
 bleachParams.sBleach = [0.3 0.3];         % Dropping to this value is bleaching   [0.22 .32]
 bleachParams.cBleach = [0.1 0.1];          % Dropping to this value is bleaching   [0.1 0.1]
@@ -251,7 +249,7 @@ if exist('optimizerMode', 'var') && exist('optimizerBleachParams', 'var')
     % Only change the parts of the struct which are given.
     bleachParams = updateIfGiven(bleachParams, optimizerBleachParams);
 end
-    
+
 
 
 %% Some useful paths and test strings to be used later.
@@ -303,9 +301,9 @@ else
     if strcmp(everyx, 'eq')
         toDo = find(abs(Reefs_latlon(:, 2))<=7)';
     elseif strcmp(everyx, 'lo')
-        toDo = find(abs(Reefs_latlon(:, 2))<=14 & abs(Reefs_latlon(:, 2)) > 7)';  
+        toDo = find(abs(Reefs_latlon(:, 2))<=14 & abs(Reefs_latlon(:, 2)) > 7)';
     elseif strcmp(everyx, 'hi')
-        toDo = find(abs(Reefs_latlon(:, 2))>14)';   
+        toDo = find(abs(Reefs_latlon(:, 2))>14)';
     else
         disp('WARNING: everyx was not a number or one of a few allowed strings.  Using 1.');
         toDo = 1:1:numTestReefs;
@@ -327,7 +325,7 @@ Mort_85_10_all = nan(numTestReefs,1);
 CoralCover_Branch_2010 = nan(numTestReefs,1);
 
 
-%% LOAD SELECTIONAL VARIANCE (psw2) 
+%% LOAD SELECTIONAL VARIANCE (psw2)
 load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
 % pswInputs are not used in computations, but they are recorded to document
 % each run.
@@ -355,9 +353,9 @@ vMT   = vM;                    % Mutational variance (degC^2/yr) (convert to mon
 MutV  = [vM vM];               % Mutational variance matrix for symbiont calcs
 MutVx = repmat(MutV,1,coralSymConstants.Sn);     % Mutational variance matrix for coral calcs
 % January 2016, more variables need replication when Sn > 1
-coralSymConstants.EnvVx = repmat(coralSymConstants.EnvV,1,coralSymConstants.Sn);     % Environmental variance matrix 
+coralSymConstants.EnvVx = repmat(coralSymConstants.EnvV,1,coralSymConstants.Sn);     % Environmental variance matrix
 %XXX
-coralSymConstants.KSx = repmat(coralSymConstants.KS,1,coralSymConstants.Sn);     % Environmental variance matrix 
+coralSymConstants.KSx = repmat(coralSymConstants.KS,1,coralSymConstants.Sn);     % Environmental variance matrix
 
 
 
@@ -451,16 +449,16 @@ for i = queueMax:-1:1
     % about the identity of the reefs in this case, so we just need enough
     % columns for all reefs actually calculated, ignoring those which are
     % skipped.
-    C_year_chunk{i} = zeros(years, chunkSize, coralSymConstants.Cn); % Coral cover for all reefs, but just 2 columns.  
+    C_year_chunk{i} = zeros(years, chunkSize, coralSymConstants.Cn); % Coral cover for all reefs, but just 2 columns.
     Massive_dom_chunk{i} = zeros(length(time), 1);
-    
+
 end
 % TODO input arrays such as SST and Reefs_latlon are sent at full size to
 % each worker.  Consider sending just the correct subset to each.
 
-%% RUN EVOLUTIONARY MODEL 
-parfor (parSet = 1:queueMax, parSwitch)
-%for parSet = 1:queueMax
+%% RUN EVOLUTIONARY MODEL
+%parfor (parSet = 1:queueMax, parSwitch)
+for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -496,7 +494,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         temp = interp(SSThist,1/dt); % Resample temp 4X times higher rate using lowpass interpolation
         omega = interp(Omega_hist, 1/dt);
         % new vector is 4x length of orginal
- 
+
 
         %% Make Histogram of psw2 and map of var(SSThist)
         % hist_prop_fig     % run sub m-file to make map & histogram
@@ -508,15 +506,15 @@ parfor (parSet = 1:queueMax, parSwitch)
         %SelV = [1.25 1]*psw2*var(SSThist_anom(:))
 
         % Initialize symbiont genotype, sym/coral population sizes, carrying capacity
-        
+
         %ssss = findDateIndex(strcat('14-Jan-', num2str(par_SuppressYears(1+ k - par_kOffset)-10)), strcat('16-Jan-',num2str(par_SuppressYears(1+ k - par_kOffset)-10)), time);
         %eeee = findDateIndex(strcat('14-Dec-', num2str(par_SuppressYears(1+ k - par_kOffset))), strcat('16-Dec-',num2str(par_SuppressYears(1+ k - par_kOffset))), time);
-        
+
         [vgi, gi, S, C, hist, ri] = Init_genotype_popsize(Data, time, initIndex, temp, coralSymConstants, ...
             E, vM, SelV, superMode, superAdvantage, startSymFractions, ...
             [suppressSuperIndexM10(k) suppressSuperIndex(k)], k);
 
-              
+
 
         if length(suppressSuperIndex) > 1
             ssi = suppressSuperIndex(k);
@@ -547,7 +545,7 @@ parfor (parSet = 1:queueMax, parSwitch)
                 suff = sprintf('_%s_E%d_SymStrategy%dAdv%0.2fC_Reef%d', RCP, E, superMode, superAdvantage, k);
             end
             genotypeFigure(fullMapDir, suff, k, time, gi, ssi);
-            
+
             % Growth rate vs. T as well
             % TODO: dies when ssi = 0...
             growthRateFigure(fullMapDir, suff, datestr(time(ssi), 'yyyy'), ...
@@ -556,16 +554,18 @@ parfor (parSet = 1:queueMax, parSwitch)
 
            %}
         end
-                
-        par_C_cum = par_C_cum + C; 
+
+        par_C_cum = par_C_cum + C;
         par_Massive_dom = par_Massive_dom + C(:, 1) > C(:, 2);
         % Time and memory will be consumed, but we need stats on coral
         % cover.
         par_C_year(:, reefCount, 1) =  decimate(C(:, 1), stepsPerYear, 'fir');
         par_C_year(:, reefCount, 2) =  decimate(C(:, 2), stepsPerYear, 'fir');
         
+        % Call to check for fatal errors, but don't use the outputs yet.
+        Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
+
         % Testing a separate routine to get bleaching from symbiont density.
-        % append '_min' to function name for new yearly-minimum option.
         [bleachOneReef, dCov] = Get_bleach_freq(C, C_seed, S, S_seed, k, time, reefLatlon, ...
                     TIME, dt, initIndex, startYear, bleachParams); %, bleachFrac);
         if ~isempty(bleachOneReef)
@@ -595,13 +595,12 @@ parfor (parSet = 1:queueMax, parSwitch)
               pdfDirectory, LOC, NF, E, dateString, lenTIME);
 
         end
-        
+
         printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last digit is the number of pieces to report.
         if parSwitch && mod(reefCount, printFreq) == 0
             fprintf('Set %d is %3.0f percent complete.\n', parSet, (100*reefCount/length(toDoPart{parSet})));
         end
-        
-            
+
     end % End of reef areas for one parallel chunk
 
     bEvents_chunk{parSet} = par_bEvents;
@@ -653,15 +652,12 @@ if saveVarianceStats
         tVariance(k) = var(SSThist(1:initSSTIndex));
         selVariance(k) = psw2_new(k)*tVariance(k);
     end
-  
+
     lastYearOfCover = GetLastYearArray(bEvents, maxReefs);
     save(strcat(basePath, 'LastYear', '_selV_', RCP, 'E=', num2str(E), 'OA=', num2str(OA), '.mat'), 'psw2_new', 'selVariance', 'tVariance', 'lastYearOfCover', 'RCP', 'OA', 'E');
 end
 
 if ~skipPostProcessing
-
-    
-
 
     justSummaries = bEvents(strcmp({bEvents.event}, 'BLEACH8510') & strcmp({bEvents.coral}, 'REEF'));
     Bleaching_85_10 = 100 * sum(cat(1, justSummaries.count)) / (reefsThisRun*(1+2010-1985));
@@ -671,7 +667,7 @@ if ~skipPostProcessing
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
     fprintf('Bleaching by duration = %6.4f and by event = %6.4f\n', ...
         Bleaching_85_10, Bleaching_85_10_By_Event);
-    
+
     if strcmp(RCP, 'control400')
         PRGYears = 1950:25:2250;
     else
@@ -684,7 +680,7 @@ if ~skipPostProcessing
 
 
 
-    format shortg; 
+    format shortg;
     filePrefix = strcat(modelChoices,'_NF',num2str(NF),'_',dateString);
     % Don't save all this data if we're just optimizing.  TODO: better name
     % for the boolean.
@@ -711,7 +707,7 @@ if ~skipPostProcessing
 
         MapsCoralCoverNew(fullMapDir, bEvents, rangeBoth, modelChoices, filePrefix);
 
- 
+
         % New dominance graph
         % Get stats based on C_yearly - try getting quantiles per row.
         % C_yearly has year/reef/coral type
@@ -723,7 +719,7 @@ if ~skipPostProcessing
         % the right to left.
         % 5% and 95%
         span = [startYear:startYear+years-1]';
-           
+
         if superMode && superMode ~= 5
             suffix = sprintf('_%s_E%d_SymStrategy%d', RCP, E, superMode);
         elseif superMode == 0 || superMode == 5
@@ -735,7 +731,7 @@ if ~skipPostProcessing
             [C_quant(:,2,1);flipud(C_quant(:,4,1))], ...    % narrow quantiles, massive
             [C_quant(:,2,2);flipud(C_quant(:,4,2))], ...    % narrow quantiles, branching
             span, squeeze(C_quant(:, 3, 1:2))); %  values for lines
-            
+
         %{
         works for just average cover...
         figureCover = figure('Name','Global Coral Cover');
@@ -760,7 +756,7 @@ if ~skipPostProcessing
     % examined by the optimizer when it is used.
     [percentBleached, percentMortality] = New_Stats_Bleach(bEvents, toDo, Reefs_latlon, ...
         outputPath, bleachParams, RCP, E, OA);
-    
+
     % Get the years when reefs first experienced lasting mortality.
     % This isn't wanted every run, and certainly not when super symbionts
     % are introduced in a varable way.
@@ -778,7 +774,7 @@ if ~skipPostProcessing
         logTwo(strcat(fmt,'\n'), quants);
         fmt = repmat('%8d', 1, length(quants));
         logTwo(strcat(fmt,'\n'), qLong);
-        
+
         % A second set of flags, using the first year of bleaching
         % I'm assuming full-reef bleaching is wanted (both coral types),
         % but massive bleachings is a good proxy for that since branching
@@ -810,7 +806,7 @@ if ~skipPostProcessing
         fn = strcat('firstBleachYears_', RCP, '_', num2str(E));
         save(fn, 'RCP', 'E', 'OA', 'firstBleachYears');
     end
-    
+
     logTwo('Bleaching by duration = %7.4f and by event = %7.4f\n', ...
         Bleaching_85_10, Bleaching_85_10_By_Event);
 end

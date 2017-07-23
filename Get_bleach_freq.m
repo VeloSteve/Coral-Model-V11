@@ -1,6 +1,6 @@
 %%
 %   Identify when bleaching and recovery happens for a reef.  The
-%   definitions for this purpose are:  
+%   definitions for this purpose are:
 %   Bleaching: The ratio of symbiont density to coral density decreases to
 %   10% or less of the value one year before for massive corals, or to 20%
 %   or less for branching corals.
@@ -26,47 +26,33 @@ function [bEvents, dCov] = ...
     MASS = 1;
     BRAN = 2;
     typeName = {'MASS', 'BRAN'};
-    
+
     %% All adjustable parameters are passed in via a structure.
-    % Massive before branching    
+    % Massive before branching
     % Define bleaching and recovery
     sBleach = b.sBleach;
     cBleach = b.cBleach;
     seedThresh = C_seed .* b.cSeedThresholdMult;
     yearsToMortality = b.yearsToMortality;
-    yearsAverage = b.yearsRunningAverage;
     sRecoverySeedMult = b.sRecoverySeedMult;
     cRecoverySeedMult = b.cRecoverySeedMult;
 
-    %requireCoralRecovery = false;
 
-    preBleachSymbiont = [0.0 0.0];
-    % out of use preBleachCoral = [0.0 0.0];
-    
-    % fprintf('Sym bleach: %6.3f %6.3f  Coral bleach: %6.3f %6.3f \n', sBleach, cBleach);
-    
-    
     %% Record each bleaching or recovery event
     eventCount = 0;  % index into mEvent array
     bleachCount = 0;
     bleachCount8510 = 0;
     % Initialize to a larger than average size so there's not much array
     % growth.
-    bEvents(32).last = 0; 
-       
+    bEvents(32).last = 0;
+
     stepsPerYear = 12 / dt;
     assert(length(C)*dt == length(TIME), 'Expected months in TIME to equal timesteps in C times dt.');
-    
-    % For both S and C we will compare to a trailing average, but it's a
-    % per-date average so seasonal variation is preserved.  This started as
-    % a 5-year average, but it's tuneable.
-    %cCompare = trailingSameDateAverage(C, yearsAverage, stepsPerYear);
-    %sCompare = trailingSameDateAverage(S, yearsAverage, stepsPerYear);
-    
+
     % Find the minimum coral cover and symbiont density for each year.
     [crow, ccol] = size(C);
     [srow, scol] = size(S);
-    
+
     %% WARNING: Note that S is collapsed to one type of symbiont for each
     %  coral type.  That's good in this routine since any alternate
     %  symbiont is considered just as good for recovery.  Do NOT pass this
@@ -78,7 +64,7 @@ function [bEvents, dCov] = ...
         scol = 2;
     end
 
-        
+
 
     Cmin(crow, ccol) = 0; % preallocate Cmin
     Smin(srow, scol) = 0; % preallocate Smin
@@ -110,17 +96,12 @@ function [bEvents, dCov] = ...
             Smin(i:i+stepsPerYear-1, j) = min(S(i:i+stepsPerYear-1, j));
         end
     end
-    % Average over recent years, to increase capture of gradual drops.
-    if yearsAverage > 1
-        Cmin = trailingSameDateAverage(Cmin, yearsAverage, stepsPerYear);
-        Smin = trailingSameDateAverage(Smin, yearsAverage, stepsPerYear);
-    end
 
     % This was for multiPlot - are they still needed?
     bMark = zeros(length(S), 2);
     rMark = zeros(length(S), 2);
     mMark = zeros(length(S), 2);
-    
+
     % Flags for when corals are considered bleached and dead.
     bState = zeros(length(S), 4);
     mState = zeros(length(S), 6);
@@ -130,23 +111,18 @@ function [bEvents, dCov] = ...
     % By starting with nan's, only values set to 1 will plot.
     %dCov = nan(length(S), 2);
     dCov(length(S), 2) = 0;
-    
+
     % Columns
     % For 1 and 2, use existing MASS and BRAN values.
     BOTH = 3;
     EITHER = 4;
     START = 5;
     END = 6;
-       
+
     sBleachCount = 0;
     cBleachCount = 0;
-    bBleachCount = 0; 
+    bBleachCount = 0;
     bMortCount = 0;
-    sRecCount = 0;
-    massRecCount = 0;
-    seedRecSCount = 0;
-    seedRecCCount = 0;
-    massActCount = 0;
     % if massive coral has mortality due to seed threshold (not bleaching),
     % keep track and allow it to recover the same way.
     massiveSeedMort = false;
@@ -164,27 +140,13 @@ function [bEvents, dCov] = ...
             if bleached
                 % Require 60% of previous S value AND > 5*seed for massive
                 % symbionts and coral.
-                % Optionally, required coral to recover to 30% of previous
-                % value as well (requireCoralRecovery).
                 % Note that S_seed is a single constant, C_seed has two
                 % values.
 
-                % Note: requireCoralRecovery is off, but implementation
-                % below is really "allow coral recovery". Fix naming or
-                % logic if enabled.
-                sRec = true;
-             
                 massRec = massiveSeedMort && cType == MASS;
                 seedRecS = Smin(i, cType) > sRecoverySeedMult(cType)*S_seed(cType);
-                % debugC = Cmin(i, cType);
                 seedRecC = Cmin(i, cType) > cRecoverySeedMult(cType)*C_seed(cType);
-                if seedRecC && ((seedRecS && sRec ) || massRec)
-                    sRecCount = sRecCount + sRec;
-                    massRecCount = massRecCount + massRec;
-                    seedRecSCount = seedRecSCount + seedRecS;
-                    seedRecCCount = seedRecCCount + seedRecC;
-                    massActCount = massActCount + (~(seedRecS && sRec ) && massRec);
-
+                if seedRecC && (seedRecS || massRec)
                     bleached = false;
                     massiveSeedMort = false;
                     bState(i:end, cType) = 0;
@@ -204,7 +166,7 @@ function [bEvents, dCov] = ...
                             mort = true;
                             mMark(i, cType) = 0.5;
                             mMark(i, cType) = 1;
-                            
+
                             [bEvents, eventCount] = ...
                                 makeBEvent(bEvents, eventCount, time(i), typeName(cType), 'MORTALITY', k, latlon);
                             dCov(i, cType) = 1;
@@ -222,7 +184,7 @@ function [bEvents, dCov] = ...
                     bBleachCount = bBleachCount + (sB && cB);
                     sBleachCount = sBleachCount + (sB && ~cB);
                     cBleachCount = cBleachCount + (cB && ~sB);
-                  
+
                     bleached = true;
                     bState(i:end, cType) = 1;
                     anyBleached = true;
@@ -232,8 +194,6 @@ function [bEvents, dCov] = ...
                     end
                     bleachCount = bleachCount + 1;
                     bMark(i, cType) = 1;
-                    preBleachSymbiont(cType) = Smin(i-stepsPerYear, cType);
-                    % out of use preBleachCoral(cType) = Cmin(i-stepsPerYear, cType);
                     %fprintf('Reef %d, S = %0.2e, year = %d, %s bleached\n', ...
                     %    k, S(i, cType), reefYear(time(i)), typeName{cType});
                     [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(i), typeName(cType), 'BLEACH', k, latlon);
@@ -270,21 +230,21 @@ function [bEvents, dCov] = ...
 
                     % Set a higher-than actual value, since we want to be
                     % well above the current level to declare recovery.
-                    
+
                     % Not setting anyBleached since this is not bleaching
                     % in the normal sense.
                     % anyBleached = true;
                 end
             end
         end  % end time loop
-        
+
         % The last bleaching event for each coral type should be flagged if
         % there was no subsequent recovery.
         if anyBleached
             bEvents(lastBleachEvent).last = 1;
         end
     end  % end coral type loop
-    
+
     % Store how many times bleaching occurred for direct use in mapping.
     % This is easier than adding events later, and includes maps with zero
     % bleaching.
@@ -318,7 +278,7 @@ function [bEvents, dCov] = ...
             bEvents(eventCount).last = 1;
         end
     end
-    
+
     %% New special entry type, 2/18/2017
     %  We want to know when a reef is in a state of mortality for 5 years.
     %  For each mortality event, see if mortality ends within 5 years.
@@ -341,13 +301,13 @@ function [bEvents, dCov] = ...
                     if i+span > length(time)
                         % never in mortality for 5 years.
                         [bEvents, eventCount] = makeBEvent(bEvents, eventCount, 0, 'REEF', 'LONGMORT', k, latlon);
-                    else 
+                    else
                         [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(i+span), 'REEF', 'LONGMORT', k, latlon);
                     end
                     found = true;
                 else
                     % If there's an end in mE within 5 years, this is not what
-                    % we're looking for.  
+                    % we're looking for.
                     nextEnd = find(mE > i, 1);  % first index in the array of indexes
                     if mE(nextEnd) > i + span
                         [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(i+span), 'REEF', 'LONGMORT', k, latlon);
@@ -362,11 +322,11 @@ function [bEvents, dCov] = ...
 
     end
 
-    
+
     % Bleaching state
     bState(:, BOTH) = bState(:, MASS) & bState(:, BRAN);
     bState(:, EITHER) = bState(:, MASS) | bState(:, BRAN);
-    
+
     % Answer the question: For how many years was this reef bleached during
     % 1985 to 2010?
     % The bState array has a one or zero for each timestep.  We want to
@@ -387,12 +347,12 @@ function [bEvents, dCov] = ...
     [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(1), 'BRAN', 'BLEACH8510', k, latlon, bYears(BRAN));
     [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(1), 'MASS', 'BLEACH8510', k, latlon, bYears(MASS));
     [bEvents, eventCount] = makeBEvent(bEvents, eventCount, time(1), 'EITHER', 'BLEACH8510', k, latlon, bYears(EITHER));
-    
+
     % Delete unused event storage locations before returning.
     bEvents(eventCount+1:end) = [];
-    
+
     % yearAgoFraction = S ./ circshift(S, stepsPerYear, 1);
-    
+
 end
 
 %% Convert a timestamp (in days) to a whole number year.  If zero is provide,
