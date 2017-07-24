@@ -1,4 +1,4 @@
-function [ C_yearly ] = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, bleachParams, coralConstants )
+function [ C_monthly, S_monthly, C_yearly, bleachEvent ] = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, bleachParams, coralConstants )
 %Clean_Bleach_Stats computes columns of coral health flags for plotting and tables.
     %   This is a complete-rewrite of Get_Bleach_Freq to remove any unneeded
     %   code and variables. The list-of-events approach is scrapped.
@@ -88,8 +88,10 @@ function [ C_yearly ] = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, blea
     sRecoverySeedMult = bleachParams.sRecoverySeedMult;
     cRecoverySeedMult = bleachParams.cRecoverySeedMult;
     extendedBleaching = bleachParams.yearsToMortality;
+    % Result arrays, eventually for output
     bleached = false(yearCount, numCorals);
     dead = false(yearCount, numCorals);
+    bleachEvent = zeros(yearCount, numCorals);
     lastBleaching = nan(2,1);
     for coral = 1:numCorals
         bleachFlag = false;
@@ -132,6 +134,7 @@ function [ C_yearly ] = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, blea
                     bleached(y:end) = true;
                     bleachFlag = true;
                     lastBleaching(coral) = y;
+                    bleachEvent(y) = y;
                 end
             end
         end
@@ -139,7 +142,7 @@ function [ C_yearly ] = Clean_Bleach_Stats( C, S, C_seed, S_seed, dt, TIME, blea
     % TODO: see if calculating sBleach*Smin into a new array and then
     % comparing would be faster, possibly with yet another temporary array
     % storing _potential_ bleaching points.
-    
+    bleachEvent = sparse(bleachEvent);
     
     
 

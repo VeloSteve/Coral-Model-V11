@@ -137,7 +137,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %keyReefs = [402 420];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
-keyReefs = [103];
+keyReefs = [1 103];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
 % experi3.53ence 5 years of mortality by 2012.
@@ -562,12 +562,26 @@ for parSet = 1:queueMax
         par_C_year(:, reefCount, 1) =  decimate(C(:, 1), stepsPerYear, 'fir');
         par_C_year(:, reefCount, 2) =  decimate(C(:, 2), stepsPerYear, 'fir');
         
+        %% New clean stats section
+        
         % Call to check for fatal errors, but don't use the outputs yet.
-        Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
+        [ C_monthly, S_monthly, C_yearly, bleachEvent ] = Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
+        
+        plotFlag = ~neverPlot && (allPDFs || any(keyReefs == k));     % may only be plotting keyReefs
+        if plotFlag
+            % Now that we have new stats, reproduce the per-reef plots.
+            Plot_One_Reef(C_monthly, S_monthly, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
+                  hist, Data, initIndex, gi, ri, SGPath, outputPath, k, ...
+                  pdfDirectory, LOC, NF, E, dateString, lenTIME);
+        end
 
+        
+        %% Back to pre-cleanup code
         % Testing a separate routine to get bleaching from symbiont density.
+        %{
         [bleachOneReef, dCov] = Get_bleach_freq(C, C_seed, S, S_seed, k, time, reefLatlon, ...
                     TIME, dt, initIndex, startYear, bleachParams); %, bleachFrac);
+        %}
         if ~isempty(bleachOneReef)
             par_bEvents = [par_bEvents bleachOneReef];
         end
@@ -590,10 +604,11 @@ for parSet = 1:queueMax
             %Plot_SST_Decimate(psw2, time, temp, lat, lon, RCP, ...
             %  hist, C, S, Data, initIndex, gi, dCov, ri, basePath, outputPath, k, ...
             %  pdfDirectory, LOC, NF, E, dateString, lenTIME);
+            %{
             Plot_SSTDensityCover_Decimate(psw2, time, temp, lat, lon, RCP, ...
               hist, C, S, Data, initIndex, gi, dCov, ri, SGPath, outputPath, k, ...
               pdfDirectory, LOC, NF, E, dateString, lenTIME);
-
+            %}
         end
 
         printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last digit is the number of pieces to report.
