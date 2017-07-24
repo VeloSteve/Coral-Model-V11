@@ -2,8 +2,8 @@
 % Inputs:
 % C    - Coral population, downsampled to monthly in advance.
 % S    - Symbiont density, downsampled to monthly in advance.
-% bleachEvent - the index, in months, of each bleaching event.  1 column
-%               per coral type.
+% bleachEvent - sparse boolean array with true for each bleaching event.
+%               1 column per coral type.
 % psw2 - selectional variance
 % time - time axis for plotting
 % temp - SST history
@@ -134,12 +134,12 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         
         % For the bleaching markers, the X values change each time, since
         % there is just one even, so we set YData too.
-        subscripts = nonzeros(bleachEvent(:,2));
+        [subscripts, ~] = find(bleachEvent(:,2));
         tSub = timeY(subscripts);
         subscripts(subscripts > 0) = 1000000;  % Arbitrary value above y=0
         set(scatCC2, 'XData', tSub);
         set(scatCC2, 'YData', subscripts);
-        subscripts = nonzeros(bleachEvent(:,1));
+        [subscripts, ~] = find(bleachEvent(:,1));
         tSub = timeY(subscripts);
         subscripts(subscripts > 0) = 1000000;  % Arbitrary value above y=0
         set(scatCC1, 'XData', tSub); 
@@ -243,12 +243,12 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         % For the scatter data, we're just drawing a circle on the x axis.
         % approximating to min-year will be close enough.
         timeY(1:length(bleachEvent)) = time(6:12:length(time));
-        subscripts = nonzeros(bleachEvent(:,2));
+        [subscripts, ~] = find(bleachEvent(:,2));
         tSub = timeY(subscripts);
         subscripts(subscripts > 0) = 1000000;  % Arbitrary value above y=0
         scatCC2 = scatter(tSub,subscripts,'b'); datetick % branching mort event
        
-        subscripts = nonzeros(bleachEvent(:,1));
+        [subscripts, ~] = find(bleachEvent(:,1));
         tSub = timeY(subscripts);
         subscripts(subscripts > 0) = 1000000;
         scatCC1 = scatter(tSub, subscripts,'m');  % massive mort event

@@ -5,7 +5,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapsCoralCoverNew(fullDir, bEvents, yearRange, modelChoices, filePrefix )
+function [] = MapsCoralCoverClean(fullDir, Reefs_latlon, activeReefs, lastYearAlive, yearRange, modelChoices, filePrefix )
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
@@ -13,22 +13,23 @@ format shortg;
 % map %% NOTE: worldmap doesn't seem to be working on work computer
 
 %% Make map of last mortality event recorded
-% Get last full-reef mortality events:
-events = bEvents([bEvents.last]==1 & strcmp({bEvents.coral},'REEF') & strcmp({bEvents.event}, 'MORTALITY'));
+
 % We need to map a spot for all reefs, to show those that never bleached.
 % Not every reef has a last mortality, but all have BLEACH8510 stats.
-forBG = bEvents(strcmp({bEvents.coral},'REEF') & strcmp({bEvents.event}, 'BLEACH8510'));
+allReefs(1:length(activeReefs), 1) = Reefs_latlon(activeReefs, 1);
+allReefs(1:length(activeReefs), 2) = Reefs_latlon(activeReefs, 2);
 
 tName = strcat(modelChoices,'. Year Corals No Longer Persist');
 fileBase = strcat(fullDir, filePrefix,'_LastYrCoralMap');
 % Green points everywhere
-oneMap(12, [forBG.lon], [forBG.lat], [0 0.8 0], yearRange, parula, tName,'', false);
+oneMap(12, allReefs(:, 1), allReefs(:, 2), [0 0.8 0], yearRange, parula, tName,'', false);
 
 % Color-scaled points where there is a last year
 outFile = strcat(fileBase, '.pdf');
-if ~isempty(events)
+if any(lastYearAlive)
+    ind = find(lastYearAlive);
     customColors = customScale();
-    oneMap(12, [events.lon], [events.lat], [events.year], yearRange, customColors, tName, outFile, true);
+    oneMap(12, Reefs_latlon(ind, 1), Reefs_latlon(ind, 2), lastYearAlive(ind), yearRange, customColors, tName, outFile, true);
 end
 
 % This one may be post-processed, so save .fig

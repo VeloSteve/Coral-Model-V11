@@ -19,7 +19,7 @@ Computer = 3; % 1=office; 2=laptop; 3=Steve; 4=Steve laptop; 0 = autodetect
 cd (basePath);
 
 %% Clear variables which I want to examine between runs, but not carry over.
-clearvars bEvents resultSimilarity Omega_all Omega_factor;
+clearvars bEvents bleachEvents bleachState mortState resultSimilarity Omega_all Omega_factor;
 
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
@@ -29,12 +29,12 @@ OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 20000; % 1;                % run code on every x reefs, plus "keyReefs"
+everyx = 20; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % if everyx is one of 'eq', 'lo', 'hi' it
                                 % selects reefs for abs(latitude) bins [0,7],
                                 % (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
-neverPlot = false;               % For optimization runs, turn off all plotting.
+doPlots = true;                 % For optimization runs, turn off all plotting.
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
@@ -173,8 +173,7 @@ if multiThread
     % before this clears their variables.  If not it gets the plot routine
     % loaded onto them.
     spmd
-        %Plot_SST_Decimate();
-        Plot_SSTDensityCover_Decimate();
+        Plot_One_Reef();
         graphCompare();
     end
 end
@@ -347,8 +346,11 @@ assert(length(startSymFractions) == coralSymConstants.Sn, 'Symbiont start fracti
 
 
 % Mutational Variance w (E=1) and w/o Evolution (E=0)
-if E==0; vM = 0 ;     % Mutational variance (degC^2/yr) (convert to months/12)
-else vM = coralSymConstants.ve*.001/12; end %%(1.142*10^-5)/12 ;    % Mutational variance (degC^2/yr) (convert to months/12)
+if E==0
+    vM = 0;     % Mutational variance (degC^2/yr) (convert to months/12)
+else
+    vM = coralSymConstants.ve*.001/12;
+end %%(1.142*10^-5)/12 ;    % Mutational variance (degC^2/yr) (convert to months/12)
 vMT   = vM;                    % Mutational variance (degC^2/yr) (convert to months/12)
 MutV  = [vM vM];               % Mutational variance matrix for symbiont calcs
 MutVx = repmat(MutV,1,coralSymConstants.Sn);     % Mutational variance matrix for coral calcs
@@ -438,7 +440,9 @@ for i = queueMax:-1:1
     resultSim_chunk{i} = nan(1,1);
     % ACM_chunk{i} = nan(1, 1);
     % ACB_chunk{i} = nan(1, 1);
-    bEvents_chunk{i} = [];
+    bleachEvents_chunk{i} = false(1,1);
+    bleachState_chunk{i} = false(1,1);
+    mortState_chunk{i} = false(1,1);
     LatLon_chunk{i} = Reefs_latlon(min(toDoPart{i}):max(toDoPart{i}),1:2);
     %suppressYears_chunk{i} = suppressSuperUntil(min(toDoPart{i}):max(toDoPart{i}));
     SST_chunk{i} =SST(min(toDoPart{i}):max(toDoPart{i}), :);
@@ -466,7 +470,9 @@ for parSet = 1:queueMax
     % insertion into an output array.
     % TODO see if length(toDoPart(parSet)) should be used instead of
     % chunkSize.
-    par_bEvents = [];
+    par_bleachEvents = false(length(toDoPart(parSet)), years, coralSymConstants.Cn);
+    par_bleachState = par_bleachEvents;
+    par_mortState = par_bleachEvents;
     par_SST = SST_chunk{parSet};
     par_Omega = Omega_chunk{parSet};
     par_LatLon = LatLon_chunk{parSet};
@@ -502,7 +508,7 @@ for parSet = 1:queueMax
         % Use a limited range of SSTHist for selectional variance, so
         % that we don't include modern climate change.
         SelV = [1.25 1]*psw2*var(SSThist(1:initSSTIndex));
-        SelVx = repmat(SelV,1,coralSymConstants.Sn);     %#ok<PFBNS> % Selectional variance matrix for coral calcs
+        SelVx = repmat(SelV,1,coralSymConstants.Sn);     % Selectional variance matrix for coral calcs
         %SelV = [1.25 1]*psw2*var(SSThist_anom(:))
 
         % Initialize symbiont genotype, sym/coral population sizes, carrying capacity
@@ -564,42 +570,46 @@ for parSet = 1:queueMax
         
         %% New clean stats section
         
-        % Call to check for fatal errors, but don't use the outputs yet.
-        [ C_monthly, S_monthly, C_yearly, bleachEvent ] = Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
+        [ C_monthly, S_monthly, C_yearly, bleachEventOneReef, bleachStateOne, mortStateOne ] = ...
+            Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
         
-        plotFlag = ~neverPlot && (allPDFs || any(keyReefs == k));     % may only be plotting keyReefs
+        plotFlag = doPlots && (allPDFs || any(keyReefs == k));     % may only be plotting keyReefs
         if plotFlag
             % Now that we have new stats, reproduce the per-reef plots.
-            Plot_One_Reef(C_monthly, S_monthly, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
+            Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
                   hist, Data, initIndex, gi, ri, SGPath, outputPath, k, ...
                   pdfDirectory, LOC, NF, E, dateString, lenTIME);
         end
 
         
         %% Back to pre-cleanup code
-        % Testing a separate routine to get bleaching from symbiont density.
-        %{
-        [bleachOneReef, dCov] = Get_bleach_freq(C, C_seed, S, S_seed, k, time, reefLatlon, ...
-                    TIME, dt, initIndex, startYear, bleachParams); %, bleachFrac);
-        %}
-        if ~isempty(bleachOneReef)
-            par_bEvents = [par_bEvents bleachOneReef];
-        end
-        % GET MORTALITY FREQUENCY (bleaching estimate across all reefs)
-
-        bleachLimit = 500;  % Just an arbitrary limit to catch extreme cases.
-        if length(bleachOneReef) > bleachLimit
+        bleachLimit = 150;  % Just an arbitrary limit to catch extreme cases.
+        if length(nonzeros(bleachEventOneReef)) > bleachLimit
             % Something's wrong with this case. Send a warning and get out.
             bleachParams
-            length(bleachOneReef)
+            length(nonzeros(bleachEventOneReef))
             k
             error('ExcessiveBleaching.  Aborting one parallel set.  Reef %d has over %d bleaching events.', k, bleachLimit);
         end
+        
+        if ~isempty(bleachEventOneReef)
+            % bleachEventOneReef is returned as a sparse array which is
+            % great for plotting and saving space.  Unfortunately, sparse
+            % arrays are limited to 2D, so here it gets expanded.  It could
+            % be better to return a set or list of sparse arrays, but this
+            % is much clearer.
+            par_bleachEvents(reefCount, :, :) = full(bleachEventOneReef);
+        end
+        % Like bleachEventOneReef, but the bleaching and mortality states
+        % are never empty.  Also, these aren't stored as sparse since they
+        % can have long sequences of "true".
+        par_bleachState(reefCount, :, :) = bleachStateOne;
+        par_mortState(reefCount, :, :) = mortStateOne;
 
         % MAKE PLOTS (SST, Symbiont Genotype, Symbiont Density, Coral Cover)
 
         % Plot the current reef - call is different when using threads.
-        plotFlag = ~neverPlot && (allPDFs || any(keyReefs == k));     % may only be plotting keyReefs
+        plotFlag = doPlots && (allPDFs || any(keyReefs == k));     % may only be plotting keyReefs
         if plotFlag
             %Plot_SST_Decimate(psw2, time, temp, lat, lon, RCP, ...
             %  hist, C, S, Data, initIndex, gi, dCov, ri, basePath, outputPath, k, ...
@@ -618,7 +628,9 @@ for parSet = 1:queueMax
 
     end % End of reef areas for one parallel chunk
 
-    bEvents_chunk{parSet} = par_bEvents;
+    bleachEvents_chunk{parSet} = par_bleachEvents;
+    bleachState_chunk{parSet} = par_bleachState;
+    mortState_chunk{parSet} = par_mortState;
     C_cum_chunk{parSet} = par_C_cum;
     C_year_chunk{parSet} = par_C_year(:, 1:reefCount, :);
     Massive_dom_chunk{parSet} = par_Massive_dom;
@@ -628,10 +640,36 @@ for parSet = 1:queueMax
 
 
 end % End of parfor loop
+% Clear variables use only as inputs inside the loop.
+clearvars SST_chunk Omega_chunk LatLon_chunk;
+
 % Build these variables from the chunks.
 clearvars SST_chunk;
-bEvents = horzcat(bEvents_chunk{:});
-clearvars bEvents_chunk; % release some memory.
+
+% bleachEvents_chunk contains a chunk per worker.  Each worker's chunk
+% contains a 3D array where the first index is the sequential number of the
+% reef in that to-do chunk.  Here we build a full 3D array for all possible
+% reefs, sized (reefs, years, coral types).
+% old way: bleachEvents = horzcat(bleachEvents_chunk{:});
+bleachEvents = false(maxReefs, years, coralSymConstants.Cn);
+bleachState = false(maxReefs, years, coralSymConstants.Cn);
+mortState = false(maxReefs, years, coralSymConstants.Cn);
+for i = 1:queueMax
+    tdp = toDoPart{i}';
+    chunkE = bleachEvents_chunk{i};
+    chunkB = bleachState_chunk{i};
+    chunkM = mortState_chunk{i};
+    assert(size(chunkE, 1) == length(tdp), 'Number of reef results must match list of reef numbers.');
+    assert(size(chunkB, 1) == length(tdp), 'Number of reef results must match list of reef numbers.');
+    assert(size(chunkM, 1) == length(tdp), 'Number of reef results must match list of reef numbers.');
+    for chunkIndex = 1:size(chunkE, 1)
+        k = toDoPart{i}(chunkIndex);
+        bleachEvents(k, :, :) = chunkE(chunkIndex, :, :);
+        bleachState(k, :, :) = chunkB(chunkIndex, :, :);
+        mortState(k, :, :) = chunkM(chunkIndex, :, :);
+    end
+end
+clearvars bleachEvents_chunk bleachState_chunk mortState_chunk; % release some memory.
 
 C_yearly = horzcat(C_year_chunk{:});
 % Total coral cover across all reefs, for ploting shift of dominance.
@@ -674,32 +712,40 @@ end
 
 if ~skipPostProcessing
 
-    justSummaries = bEvents(strcmp({bEvents.event}, 'BLEACH8510') & strcmp({bEvents.coral}, 'REEF'));
-    Bleaching_85_10 = 100 * sum(cat(1, justSummaries.count)) / (reefsThisRun*(1+2010-1985));
-    % NEW 1/10/2017 count bleaching _events_
-    bleachEvents = bEvents(strcmp({bEvents.event}, 'BLEACH') & [bEvents.year] >=1985 & [bEvents.year] <= 2010);
-    count852010 = length(bleachEvents);
+    % Count bleaching events between 1985 and 2010 inclusive.
+    i1985 = 1985 - startYear + 1;
+    i2010 = 2010 - startYear + 1;
+    count852010 = nnz(bleachEvents(:, i1985:i2010, :));
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
-    fprintf('Bleaching by duration = %6.4f and by event = %6.4f\n', ...
-        Bleaching_85_10, Bleaching_85_10_By_Event);
+    fprintf('Bleaching by event = %6.4f\n', ...
+        Bleaching_85_10_By_Event);
 
-    if strcmp(RCP, 'control400')
-        PRGYears = 1950:25:2250;
-    else
-        PRGYears = [1950 2000 2050 2100 2016];
-    end
-    ct = 1;
     % Last modeled year, so we don't count a coral which lives to then as
     % dead.
     lastYear = str2double(datestr(TIME(end), 'yyyy'));
 
-
+    % Build an array with the last year each reef is alive.
+    % First add a column to mortState which is true when all coral types
+    % are dead.
+    lastYearAlive = nan(maxReefs, 1);
+    r = coralSymConstants.Cn + 1;
+    for k = 1:maxReefs
+        for i = 1:years
+            mortState(k, i, r) = all(mortState(k, i, 1:r-1));
+            % Now find the last year alive - leave NaN if it ends alive.
+        end
+        if mortState(k, years, r)
+            ind = find(~mortState(k, :, r), 1, 'last');
+            assert(~isempty(ind), 'Reef should never start out dead.');
+            lastYearAlive(k) = ind(1) + startYear - 1;
+        end
+    
+    end
 
     format shortg;
     filePrefix = strcat(modelChoices,'_NF',num2str(NF),'_',dateString);
-    % Don't save all this data if we're just optimizing.  TODO: better name
-    % for the boolean.
-    if ~neverPlot
+    % Don't save all this data if we're just optimizing.
+    if doPlots
         % fname = strcat(filePrefix,'.mat');
         fname = strcat(outputPath, pdfDirectory, filePrefix, '.mat');
         save(fname, 'toDo', ...
@@ -708,19 +754,25 @@ if ~skipPostProcessing
 
         % Get the year range for last year maps first so both functions use
         % the same range.
-        lastFull = bEvents([bEvents.last]==1 & strcmp({bEvents.coral},'REEF') & strcmp({bEvents.event}, 'MORTALITY'));
-        if isempty(lastFull)
+        if ~any(lastYearAlive)
             rangeBoth = [1960 2100];
         else
-            rangeNew = [min([lastFull.year]) max([lastFull.year])];
+            rangeNew = [min(lastYearAlive) max(lastYearAlive)];
             % Plotting chokes if the values are equal.
             if rangeNew(1) == rangeNew(2)
                 rangeNew(2) = rangeNew(2) + 1;
             end
+            % Also round out to a multiple of 10
+            if mod(rangeNew(1), 10)
+                rangeNew(1) = 10*floor(rangeNew(1)/10);
+            end
+            if mod(rangeNew(2), 10)
+                rangeNew(2) = 10*ceil(rangeNew(2)/10);
+            end
             rangeBoth = rangeNew;
         end
 
-        MapsCoralCoverNew(fullMapDir, bEvents, rangeBoth, modelChoices, filePrefix);
+        MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, rangeBoth, modelChoices, filePrefix);
 
 
         % New dominance graph
@@ -896,16 +948,3 @@ if ~exist('optimizerMode', 'var') || optimizerMode == false
     end
 
 end
-
-
-
-
-
-
-
-
-
-
-%%
-% if norm == 1; print('-dpdf',strcat('~/Dropbox/Matlab/SymbiontGenetics/Figures/',LOC, '_arag_normSST_',RCP, '_prop' ,num2str(prop), '.pdf')); end
-% if norm == 0; print('-dpdf',strcat('~/Dropbox/Matlab/SymbiontGenetics/Figures/',LOC, '_aragSST_',dataset, RCP, '_prop' ,num2str(prop), '.pdf')); end
