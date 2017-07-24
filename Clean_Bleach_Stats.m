@@ -92,7 +92,7 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent ] = Clean_Bleach_Stats( C
     bleached = false(yearCount, numCorals);
     dead = false(yearCount, numCorals);
     bleachEvent = zeros(yearCount, numCorals);
-    lastBleaching = nan(2,1);
+    lastBleaching = nan(numCorals,1);
     for coral = 1:numCorals
         bleachFlag = false;
         deadFlag = false;
@@ -134,7 +134,7 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent ] = Clean_Bleach_Stats( C
                     bleached(y:end) = true;
                     bleachFlag = true;
                     lastBleaching(coral) = y;
-                    bleachEvent(y) = y;
+                    bleachEvent(y, coral) = y;
                 end
             end
         end

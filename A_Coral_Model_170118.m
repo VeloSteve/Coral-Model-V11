@@ -29,7 +29,7 @@ OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 20; % 1;                % run code on every x reefs, plus "keyReefs"
+everyx = 20000; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % if everyx is one of 'eq', 'lo', 'hi' it
                                 % selects reefs for abs(latitude) bins [0,7],
                                 % (7, 14], or (14,90] respectively.
@@ -137,7 +137,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %keyReefs = [402 420];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
-keyReefs = [1 103];
+keyReefs = [1];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
 % experi3.53ence 5 years of mortality by 2012.
