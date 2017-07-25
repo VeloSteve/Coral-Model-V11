@@ -35,6 +35,7 @@ everyx = 20; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
 doPlots = true;                 % For optimization runs, turn off all plotting.
+doMaps = false;
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
@@ -51,7 +52,7 @@ superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
                 % 6 = use fixed delta like option 0, but start according to
                 %     first year of bleaching.
 
-superAdvantage = 0.123;           % Degrees C above native symbionts.
+superAdvantage = 0.0;           % Degrees C above native symbionts.
 startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
 
 % If this code is called from a script, we want some of the variables above
@@ -734,21 +735,31 @@ if ~skipPostProcessing
     lastYear = str2double(datestr(TIME(end), 'yyyy'));
 
     % Build an array with the last year each reef is alive.
-    % First add a column to mortState which is true when all coral types
-    % are dead.
+    % First add a column (indexed r) to mortState which is true when all
+    % coral types are dead.
+    % Also find the last bleaching event here.
+    r = coralSymConstants.Cn + 1;
     lastYearAlive = nan(maxReefs, 1);
+    lastBleachEvent = nan(maxReefs, r);
     r = coralSymConstants.Cn + 1;
     for k = 1:maxReefs
         for i = 1:years
             mortState(k, i, r) = all(mortState(k, i, 1:r-1));
+            bleachState(k, i, r) = all(bleachState(k, i, 1:r-1));
             % Now find the last year alive - leave NaN if it ends alive.
         end
         if mortState(k, years, r)
             ind = find(~mortState(k, :, r), 1, 'last');
-            assert(~isempty(ind), 'Reef should never start out dead.');
+            assert(~isempty(ind), 'Reef %d should never start out dead.', k);
             lastYearAlive(k) = ind(1) + startYear - 1;
         end
-    
+        for rr = 1:r
+            if bleachState(k, years, rr)
+                ind = find(~bleachState(k, :, rr), 1, 'last');
+                assert(~isempty(ind), 'Reef %d coral type %d should never start out bleached.', k, rr);
+                lastBleachEvent(k, rr) = ind(1) + startYear - 1;
+            end
+        end
     end
 
     format shortg;
@@ -782,7 +793,11 @@ if ~skipPostProcessing
         % All years in this run:
         fullYearRange = [startYear startYear+years-1];
 
-        MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, events85_2010, eventsAllYears, yearRange, fullYearRange, modelChoices, filePrefix);
+        if doMaps
+            MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, ...
+                events85_2010, eventsAllYears, yearRange, fullYearRange, ...
+                modelChoices, filePrefix);
+        end
 
         % New dominance graph
         % Get stats based on C_yearly - try getting quantiles per row.
@@ -806,32 +821,14 @@ if ~skipPostProcessing
             [C_quant(:,1,2);flipud(C_quant(:,5,2))], ...    % wide quantiles, branching
             [C_quant(:,2,1);flipud(C_quant(:,4,1))], ...    % narrow quantiles, massive
             [C_quant(:,2,2);flipud(C_quant(:,4,2))], ...    % narrow quantiles, branching
-            span, squeeze(C_quant(:, 3, 1:2))); %  values for lines
-
-        %{
-        works for just average cover...
-        figureCover = figure('Name','Global Coral Cover');
-        % Massive +- the percentage of reefs not in the majority.
-        % Scale by carrying capacity, just using the first two columns.
-        % We want a percentage of capacity, so also divide by reefs.
-        C_cumulative(:, 1) =  100 * C_cumulative(:, 1) / coralSymConstants.KCm / reefsThisRun;
-        C_cumulative(:, 2) =  100 * C_cumulative(:, 2) / coralSymConstants.KCb / reefsThisRun;
-        dy = Massive_dom_cumulative/reefsThisRun; % fraction massive dominant
-        dy = min(dy, 1-dy);  % fraction minority dominant
-        dy = 5*dy; % arbitrary magnifier - a few percent is nearly invisible.
-        fill([time;flipud(time)], [C_cumulative(:,1).*(1-dy);flipud(C_cumulative(:,1).*(1+dy))],[1.0 0.6 0.6], 'linestyle', 'none');
-        hold on;
-        fill([time;flipud(time)], [C_cumulative(:,2).*(1-dy);flipud(C_cumulative(:,2).*(1+dy))],[0.6 0.6 1.0], 'linestyle', 'none');
-        plot(time, C_cumulative(:, 1), '-r');
-        plot(time, C_cumulative(:, 2), '-b');
-        yyaxis right
-        plot(time, 100*Massive_dom_cumulative/reefsThisRun);
-        %}
+            span, squeeze(C_quant(:, 3, 1:2)));             % values for lines
     end
     % Note that percentMortality is not used in normal runs, but it is
     % examined by the optimizer when it is used.
-    [percentBleached, percentMortality] = New_Stats_Bleach(bEvents, toDo, Reefs_latlon, ...
-        outputPath, bleachParams, RCP, E, OA);
+    [percentBleached, percentMortality] = ...
+        New_Stats_Bleach(bleachEvents, bleachState, mortState, lastYearAlive, ...
+        lastBleachEvent, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
+        bleachParams);
 
     % Get the years when reefs first experienced lasting mortality.
     % This isn't wanted every run, and certainly not when super symbionts
