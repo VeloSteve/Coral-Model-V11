@@ -715,7 +715,16 @@ if ~skipPostProcessing
     % Count bleaching events between 1985 and 2010 inclusive.
     i1985 = 1985 - startYear + 1;
     i2010 = 2010 - startYear + 1;
-    count852010 = nnz(bleachEvents(:, i1985:i2010, :));
+    % Count by reef
+    events85_2010(maxReefs) = 0;
+    eventsAllYears(maxReefs) = 0;
+    for k = 1:maxReefs
+        events85_2010(k) = nnz(bleachEvents(k, i1985:i2010, :));
+        eventsAllYears(k) = nnz(bleachEvents(k, :, :));
+    end
+    % Count for all reefs over this time period.
+    count852010 = sum(events85_2010);
+    
     Bleaching_85_10_By_Event = 100*count852010/reefsThisRun/(2010-1985+1);
     fprintf('Bleaching by event = %6.4f\n', ...
         Bleaching_85_10_By_Event);
@@ -752,28 +761,28 @@ if ~skipPostProcessing
             'E','OA','pdfDirectory','dataset', ...
             'Reefs_latlon','everyx','CoralCover_Branch_2010','NF','RCP','numTestReefs');
 
-        % Get the year range for last year maps first so both functions use
-        % the same range.
+        % Get the year range for last year maps first.  It could be done
+        % inside, but at one point another function used this same value.
         if ~any(lastYearAlive)
-            rangeBoth = [1960 2100];
+            yearRange = [1960 2100];
         else
-            rangeNew = [min(lastYearAlive) max(lastYearAlive)];
+            yearRange = [min(lastYearAlive) max(lastYearAlive)];
             % Plotting chokes if the values are equal.
-            if rangeNew(1) == rangeNew(2)
-                rangeNew(2) = rangeNew(2) + 1;
+            if yearRange(1) == yearRange(2)
+                yearRange(2) = yearRange(2) + 1;
             end
             % Also round out to a multiple of 10
-            if mod(rangeNew(1), 10)
-                rangeNew(1) = 10*floor(rangeNew(1)/10);
+            if mod(yearRange(1), 10)
+                yearRange(1) = 10*floor(yearRange(1)/10);
             end
-            if mod(rangeNew(2), 10)
-                rangeNew(2) = 10*ceil(rangeNew(2)/10);
+            if mod(yearRange(2), 10)
+                yearRange(2) = 10*ceil(yearRange(2)/10);
             end
-            rangeBoth = rangeNew;
         end
+        % All years in this run:
+        fullYearRange = [startYear startYear+years-1];
 
-        MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, rangeBoth, modelChoices, filePrefix);
-
+        MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, events85_2010, eventsAllYears, yearRange, fullYearRange, modelChoices, filePrefix);
 
         % New dominance graph
         % Get stats based on C_yearly - try getting quantiles per row.

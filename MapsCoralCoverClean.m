@@ -5,7 +5,9 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 1-6-15                                                          %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [] = MapsCoralCoverClean(fullDir, Reefs_latlon, activeReefs, lastYearAlive, yearRange, modelChoices, filePrefix )
+function [] = MapsCoralCoverClean(fullDir, Reefs_latlon, activeReefs, ...
+    lastYearAlive, events85_2010, eventsAllYears, yearRange, fullYearRange, ...
+    modelChoices, filePrefix )
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
@@ -40,25 +42,22 @@ else
 end
 
 %% Make map showing # all bleaching events bn 1985-2010
-events = bEvents(strcmp({bEvents.event}, 'BLEACHCOUNT8510'));
 tName = 'Bleaching Events Between 1985-2010';
 outFile = strcat(fullDir, filePrefix,'_MortEvents8510Map','.pdf');
-oneMap(13, [events.lon], [events.lat], [events.count], [], jet, tName, outFile, false);
+oneMap(13, allReefs(:, 1), allReefs(:, 2), events85_2010(activeReefs), [], jet, tName, outFile, false);
 
 
 %% Figure 14 Make map showing # all bleaching events
-events = bEvents(strcmp({bEvents.event}, 'BLEACHCOUNT'));
-tName = 'Bleaching Events Between 1861-2100';
+rangeText = sprintf('%d-%d',fullYearRange);
+tName = strcat('Bleaching Events Between ', rangeText);
 outFile = strcat(fullDir, filePrefix,'_AllMortEventsMap','.pdf');
-oneMap(14, [events.lon], [events.lat], [events.count], [], jet, tName, outFile, false);
+oneMap(14, allReefs(:, 1), allReefs(:, 2), eventsAllYears(activeReefs), [], jet, tName, outFile, false);
 
 
 %% Figure 15  Same as 14 but with restricted color scale
-events = bEvents(strcmp({bEvents.event}, 'BLEACHCOUNT'));
 cRange = [0, 20];
-tName = 'Bleaching Events Between 1861-2100';
 outFile = strcat(fullDir, filePrefix,'_AllMortEventsMap_Scale20','.pdf');
-oneMap(15, [events.lon], [events.lat], [events.count], cRange, jet, tName, outFile, false);
+oneMap(15, allReefs(:, 1), allReefs(:, 2), eventsAllYears(activeReefs), cRange, jet, tName, outFile, false);
 
 
 %% Figure 16  Same as 14 but with log2 of the number of events
@@ -66,7 +65,7 @@ oneMap(15, [events.lon], [events.lat], [events.count], cRange, jet, tName, outFi
 events = bEvents(strcmp({bEvents.event}, 'BLEACHCOUNT'));
 tName = 'Bleaching Events Between 1861-2100 (log base 2)';
 outFile = strcat(fullDir, filePrefix, '_AllMortEventsMap_log2', '.pdf');
-oneMap(16, [events.lon], [events.lat], log2([events.count]), [], jet, tName, outFile, false);
+oneMap(16, allReefs(:, 1), allReefs(:, 2), log2(eventsAllYears(activeReefs)), [], jet, tName, outFile, false);
 %}
 
 
