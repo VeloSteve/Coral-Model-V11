@@ -31,7 +31,10 @@ function [permBleached, percentMortality] = ...
         lastBleachEvent = lastBleachEvent(thisRun, :);
         % And here we only need latitude. Discard longitude.
         latitude = allLatLon(thisRun, 2);
+    else
+        latitude = allLatLon(:, 2);
     end
+    
     % The number of coral types is one less than the number of the last
     % index of bleachState.
     nc = size(bleachState, 3) - 1;
@@ -63,28 +66,22 @@ function [permBleached, percentMortality] = ...
     highFrequency = permBleached;
     unrecovered = permBleached;
     frequentLive = permBleached; % For percent of still-living reefs seeing frequent bleaching.
-   
-    % Get divisors for each region
-    numEq = nnz(abs(latitude) <= eqLim);
-    numLo = nnz(abs(latitude) > eqLim & abs(latitude) <=loLim);
-    numHi = nnz(abs(latitude) > loLim);
-    numTotal = numEq + numLo + numHi;
-    latCounts = [numEq numLo numHi numTotal];
-    assert(length(latitude) == numEq + numLo + numHi, 'Reefs in subsets should match total reefs in this run.');
-    
+     
     % Use region indexes to select from the various input arrays.
     indEq = find(abs(latitude) <= eqLim);
     indLo = find((abs(latitude) > eqLim) & (abs(latitude) <= loLim));
     indHi = find(abs(latitude) > loLim);
     indexes = {indEq, indLo, indHi, 1:length(thisRun)};
 
-    % Get divisors for each region base on the indexes
+    % Get divisors for each region based on the indexes
     numEq = length(indEq);
     numLo = length(indLo);
     numHi = length(indHi);
     numTotal = numEq + numLo + numHi;
     latCounts = [numEq numLo numHi numTotal];    
-    assert(length(latitude) == numEq + numLo + numHi, 'Reefs in subsets should match total reefs in this run.');
+    assert(length(latitude) == numEq + numLo + numHi, ...
+        'Reefs in subsets should match total reefs in this run. eq/lo/hi = %d/%d/%d, total = %d', ...
+        numEq, numLo, numHi, length(latitude));
     
     % This loop builds the interior of all six tables at once.  They are
     % organized by year (columns) and by latitude range (rows).
@@ -99,18 +96,22 @@ function [permBleached, percentMortality] = ...
         % 84.38     34.38
         % 60        55
         % 77.32     48.45
+        % Why so different?  The old code counted reefs which actually
+        % recovered!
         lastBleachLat = lastBleachEvent(ind, 1);
+        lastYearAliveLat = lastYearAlive(ind);
         
         
         for n = 1:length(years)
             yr = years(n);
+            yIndex = yr - startYear + 1;
             permBleached(1, n) = yr;
             permBleached(lat+1, n) = 100*length(lastBleachLat(lastBleachLat <= yr)) / latCounts(lat);
-%{
+
             percentMortality(1, n) = yr;
-            mortalityCount = length(subMort([subMort.year] <= yr));
+            mortalityCount = length(lastYearAliveLat(lastYearAliveLat <= yr));
             percentMortality(lat+1, n) = 100* mortalityCount / latCounts(lat);
-   
+%{
             highFrequency(1, n) = yr;
             % Subset is just the last 10 years.
             % The sums count how many times a k value appears more than once

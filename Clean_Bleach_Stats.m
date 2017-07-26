@@ -88,6 +88,8 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] = Clean
     sRecoverySeedMult = bleachParams.sRecoverySeedMult;
     cRecoverySeedMult = bleachParams.cRecoverySeedMult;
     extendedBleaching = bleachParams.yearsToMortality;
+    seedThresh = C_seed .* bleachParams.cSeedThresholdMult;
+
     % Result arrays, eventually for output
     % Note that in the boolean arrays, the year can be deduced from the
     % index even though only true/false is stored.
@@ -98,6 +100,7 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] = Clean
     for coral = 1:numCorals
         bleachFlag = false;
         deadFlag = false;
+        massiveSeedMort = false;
         lastBleaching(coral) = NaN;
         for y = 2:yearCount
             if bleachFlag
@@ -108,7 +111,9 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] = Clean
                 % XXX massRec - what does it really mean? Use in the old
                 % code doesn't make sense now, but may need to be
                 % considered for consistency.
-                if seedRecS && seedRecC
+                massRec = massiveSeedMort && coral == MASS;
+
+                if seedRecS && (seedRecC || massRec)
                     bleachFlag = false;
                     bleached(y:end, coral) = false;
                     lastBleaching(coral) = NaN;
@@ -139,8 +144,35 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] = Clean
                     bleachEvent(y, coral) = true;
                 end
             end
-        end
-    end
+            
+            
+            
+            % Most of this "for" is about bleaching at potentially heathy
+            % coral levels, but also check for mortality based on an extreme
+            % low value of coral cover.
+            % Note that we also consider coral with this type of mortality
+            % to be bleached.
+            % NOTE: The coral becomes bleached, be we don't record this as
+            % a bleaching event even though it updates the last bleaching
+            % date.
+            
+            if ~deadFlag
+                if Cmin(y, coral) < seedThresh(coral)
+                    % mort implies bleached.
+                    bleachFlag = true;
+                    bleached(y:end, coral) = true;
+                    lastBleaching(coral) = y;
+                    dead(y:end, coral) = true;
+                    deadFlag = true;
+                           % massiveSeedMort = false;
+
+                end
+            end
+            
+            
+    
+        end % end years
+    end % end coral types
     % TODO: see if calculating sBleach*Smin into a new array and then
     % comparing would be faster, possibly with yet another temporary array
     % storing _potential_ bleaching points.
