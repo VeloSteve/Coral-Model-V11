@@ -34,8 +34,8 @@ everyx = 1; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % selects reefs for abs(latitude) bins [0,7],
                                 % (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
-doPlots = false;                 % For optimization runs, turn off all plotting.
-doMaps = false;
+doPlots = true;                 % For optimization runs, turn off all plotting.
+doMaps = true;                  % XXX the "do" variables are confusing.  Reorganize!
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
@@ -165,7 +165,7 @@ if exist('useTestThreads', 'var')
 else
     % defaultThreads is set in useComputer for each user's computers.
     % 1 is not normally used.  0 means to run sequentially.
-    [multiThread, queueMax] = parallelSetup(0);
+    [multiThread, queueMax] = parallelSetup(defaultThreads);
 end
 
 if multiThread
@@ -462,8 +462,8 @@ end
 % each worker.  Consider sending just the correct subset to each.
 
 %% RUN EVOLUTIONARY MODEL
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -738,29 +738,30 @@ if ~skipPostProcessing
     % First add a column (indexed r) to mortState which is true when all
     % coral types are dead.
     % Also find the last bleaching event here.
-    r = coralSymConstants.Cn + 1;
+    fullReef = coralSymConstants.Cn + 1;
     lastYearAlive = nan(maxReefs, 1);
-    lastBleachEvent = nan(maxReefs, r);
-    r = coralSymConstants.Cn + 1;
+    lastBleachEvent = nan(maxReefs, fullReef);
     for k = 1:maxReefs
         for i = 1:years
-            mortState(k, i, r) = all(mortState(k, i, 1:r-1));
-            bleachState(k, i, r) = all(bleachState(k, i, 1:r-1));
+            mortState(k, i, fullReef) = all(mortState(k, i, 1:fullReef-1));
+            bleachState(k, i, fullReef) = all(bleachState(k, i, 1:fullReef-1));
             % Now find the last year alive - leave NaN if it ends alive.
         end
-        if mortState(k, years, r)
-            ind = find(~mortState(k, :, r), 1, 'last');
+        if mortState(k, years, fullReef)
+            ind = find(~mortState(k, :, fullReef), 1, 'last');
             assert(~isempty(ind), 'Reef %d should never start out dead.', k);
             lastYearAlive(k) = ind(1) + startYear - 1;
         end
-        for rr = 1:r
+        for rr = 1:fullReef
             if bleachState(k, years, rr)
                 ind = find(~bleachState(k, :, rr), 1, 'last');
                 assert(~isempty(ind), 'Reef %d coral type %d should never start out bleached.', k, rr);
+                % XXX - looks wrong - should be based on bleachEvents array.
                 lastBleachEvent(k, rr) = ind(1) + startYear - 1;
             end
         end
     end
+    frequentBleaching = defineFrequentBleaching(bleachEvents);
 
     format shortg;
     filePrefix = strcat(modelChoices,'_NF',num2str(NF),'_',dateString);
@@ -795,7 +796,9 @@ if ~skipPostProcessing
 
         if doMaps
             MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, ...
-                events85_2010, eventsAllYears, yearRange, fullYearRange, ...
+                events85_2010, eventsAllYears, frequentBleaching, ...
+                mortState, bleachState, ...
+                yearRange, fullYearRange, ...
                 modelChoices, filePrefix);
         end
 

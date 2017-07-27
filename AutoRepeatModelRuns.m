@@ -8,17 +8,25 @@ scriptVars.superAdvantage = 0.0;
 
 %rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
 %rcpList = {'rcp26', 'rcp45', 'rcp60'};
-rcpList = {'rcp26', 'rcp45'}; %, 'rcp60', 'rcp85'};
+rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
 
 % Now all the cases
-for ooo = 0:1
-    for eee = 0  %0:1
+for ooo = 0
+    for eee = 0:1  %0:1
         for rrr = rcpList
             scriptVars.E = eee;
             scriptVars.OA = ooo;
             scriptVars.RCP = rrr{1};
             fprintf('Starting model with E = %d, OA = %d, RCP %s\n', eee, ooo, rrr{1});
-            A_Coral_Model_170118
+            try
+                A_Coral_Model_170118
+            catch err
+                if strcmp(err.message, 'Undefined function or variable ''Bleaching_85_10''.')
+                    disp('Continuing after coral model crash after mapping.');
+                else
+                    rethrow(err); %some other unexpected error. Better stop
+                end
+            end
         end
     end
 end
