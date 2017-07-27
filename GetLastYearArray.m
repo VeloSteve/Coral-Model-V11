@@ -1,5 +1,3 @@
-%% Make Maps
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Evolutionary model for coral cover (from Baskett et al. 2009)     %
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
