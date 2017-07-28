@@ -146,6 +146,7 @@ end
 %}
 
 %% Figure 19.  Maps last year of healthy coral, defined as: 
+%{
 %
 % "Maps include the last year that one or both of the coral types
 % experienced high frequency bleaching or mortality with no recovery"
@@ -181,6 +182,49 @@ tName = strcat(modelChoices,'. Last Year of Healthy Reef');
 fileBase = strcat(fullDir, filePrefix, '_LastHealthyBothTypes');
 outFile = strcat(fileBase, '.pdf');
 oneMap(19, activeLatLon(:, 1), activeLatLon(:, 2), lastHealthy(activeReefs), lastYearRange, customColors, tName, outFile, false);
+% This one may be post-processed, so save .fig
+if verLessThan('matlab', '8.2')
+    saveas(gcf, fileBase, 'fig');
+else
+    savefig(strcat(fileBase,'.fig'));
+end
+%}
+
+%% Figure 20.  Maps last year of healthy coral, defined as: 
+%
+% Fig 19 showed early problems when massive corals were still healthy.  Try
+% basing more on just the massives.
+%
+% In terms of the events flagged:
+% - bleaching - no longer included?
+% - no mortality of either coral type
+% - no high-frequency bleaching of either coral type
+% Do this by combining all the flags and then looking for the last year
+% of health.
+%
+% Dimensions:
+% frequentBleaching, mortState, and bleachState are all reefs x years x coral types.
+% mortState and bleachState include an extra column for "all"
+% Store indexes, not years in lastHealthy, until just before plotting.
+
+lastHealthy = NaN(length(Reefs_latlon), 1);
+
+combo = frequentBleaching(:, :, 1) | (mortState(:, :, 1) & mortState(:, :, 2));
+% Now we need do find the last time the value is false (healthy)
+
+for k = activeReefs
+    ind = find(~combo(k, :), 1, 'last');
+    if ~isempty(ind)
+        lastHealthy(k) = ind;
+    end
+end
+% Convert from indices to year.  NaN stays NaN.
+lastHealthy = lastHealthy + fullYearRange(1) - 1;
+lastYearRange = [1950 2100];
+tName = strcat(modelChoices,'. Last Year of Healthy Reef');
+fileBase = strcat(fullDir, filePrefix, '_LastHealthyBothTypesV2');
+outFile = strcat(fileBase, '.pdf');
+oneMap(20, activeLatLon(:, 1), activeLatLon(:, 2), lastHealthy(activeReefs), lastYearRange, customColors, tName, outFile, false);
 % This one may be post-processed, so save .fig
 if verLessThan('matlab', '8.2')
     saveas(gcf, fileBase, 'fig');
@@ -231,7 +275,8 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     end
     hold off;
 end
-
+%{
+Now in its own file.
 function [cMap] = customScale()
     % Map code posted by Stephen Cobeldick at https://www.mathworks.com/matlabcentral/fileexchange/25536-red-blue-colormap
     m = 20;
@@ -242,3 +287,4 @@ function [cMap] = customScale()
     r = [ones(1,n+x),(n-1:-1:0)/n]; 
     cMap = [r(:),g(:),b(:)];
 end
+%}

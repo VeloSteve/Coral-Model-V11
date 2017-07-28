@@ -17,18 +17,19 @@
 %     setup of this run.
 %   
 function [permBleached, percentMortality] = ...
-        New_Stats_Bleach(bleachEvents, bleachState, mortState, lastYearAlive, ...
-        lastBleachEvent, thisRun, allLatLon, outputPath, startYear, RCP, E, OA, ...
+        Stats_Tables(bleachEvents, bleachState, mortState, lastYearAlive, ...
+        lastBleachEvent, frequentBleaching, thisRun, allLatLon, outputPath, startYear, RCP, E, OA, ...
         bleachParams)
     % Subset all of the input arrays which list all reefs to just those
     % which are active in this run.  We don't care about reef IDs, just the
     % number and their latitude.
-    if length(thisRun) < length(lastYearAlive)
+    if length(thisRun) < length(allLatLon)
         bleachEvents = bleachEvents(thisRun, :, :);
         bleachState = bleachState(thisRun, :, :);
         mortState = mortState(thisRun, :, :);
         lastYearAlive = lastYearAlive(thisRun);
         lastBleachEvent = lastBleachEvent(thisRun, :);
+        frequentBleaching = frequentBleaching(thisRun, :, :);
         % And here we only need latitude. Discard longitude.
         latitude = allLatLon(thisRun, 2);
     else
@@ -100,6 +101,9 @@ function [permBleached, percentMortality] = ...
         % recovered!
         lastBleachLat = lastBleachEvent(ind, 1);
         lastYearAliveLat = lastYearAlive(ind);
+        frequentBleachingLat = frequentBleaching(ind, :, :);
+        fbCombo = frequentBleachingLat(:, :, 1) ...
+            | frequentBleachingLat(:, :, 2); % either coral counts
         
         
         for n = 1:length(years)
@@ -111,13 +115,13 @@ function [permBleached, percentMortality] = ...
             percentMortality(1, n) = yr;
             mortalityCount = length(lastYearAliveLat(lastYearAliveLat <= yr));
             percentMortality(lat+1, n) = 100* mortalityCount / latCounts(lat);
-%{
+
+            fb = fbCombo(:, yIndex, :);
             highFrequency(1, n) = yr;
-            % Subset is just the last 10 years.
-            % The sums count how many times a k value appears more than once
-            bc = countHF(subHigh, yr);
+            bc = nnz(fb);
             highFrequency(lat+1, n) = 100 * bc  / latCounts(lat);
-            
+
+%{
             frequentLive(1, n) = yr;
             live = latCounts(lat) - mortalityCount;
             if live
@@ -176,9 +180,10 @@ function [permBleached, percentMortality] = ...
     logTwo('\nPermanent mortality as of the date given:\n');
     printTable(labels, percentMortality, length(years));
 
-    logTwo('\nPercentage of reefs with more than one bleaching event in the previous 10 years.\n');
+    logTwo('\nPercentage of reefs with more than one massive coral bleaching event in the previous 10 years.\n');
     printTable(labels, highFrequency, length(years));
-    
+%{
+Enable as they are worked on...
     logTwo('\nPercentage of LIVING reefs with more than one bleaching event in the previous 10 years.\n');
     printTable(labels, frequentLive, length(years));
 
@@ -187,6 +192,7 @@ function [permBleached, percentMortality] = ...
 
     logTwo('\nPercentage of reefs with any form of current bleaching or mortality.\n');
     printTable(labels, allBleaching, length(years));
+%}
     
     % Data for plotting bleaching histories.
     % Instead of creating the plot here, save the data for use in an
@@ -199,19 +205,6 @@ function [permBleached, percentMortality] = ...
     save(strcat(outputPath, 'bleaching/BleachingHistory', RCP, 'E=', num2str(E), 'OA=', num2str(OA), '.mat'), 'xForPlot', 'yForPlot', 'yEq', 'yLo', 'yHi', 'bleachParams');
 end
 
-
-function [bc] = countHF(events, yr)
-    subset =  events(([events.year] <= yr & [events.year] >= yr-9));
-    if isempty(subset)
-        bc = 0;
-    else
-        % accumarray returns an array from 1 to the number of the highest-numbered reef
-        % found.
-        % bc is the number of reefs with more than one bleaching
-        % event in this time window.
-        bc = sum(accumarray([subset.k]', 1)>1);
-    end
-end
 
 function printTable(labels, num, len)
 

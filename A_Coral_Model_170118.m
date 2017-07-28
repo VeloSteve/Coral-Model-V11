@@ -34,8 +34,8 @@ everyx = 1; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % selects reefs for abs(latitude) bins [0,7],
                                 % (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
-doPlots = true;                 % For optimization runs, turn off all plotting.
-doMaps = true;                  % XXX the "do" variables are confusing.  Reorganize!
+doPlots = false;                 % For optimization runs, turn off all plotting.
+doMaps = false;                  % XXX the "do" variables are confusing.  Reorganize!
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
@@ -138,7 +138,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %keyReefs = [402 420];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
-keyReefs = [];
+keyReefs = [481];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
 % experi3.53ence 5 years of mortality by 2012.
@@ -829,8 +829,8 @@ if ~skipPostProcessing
     % Note that percentMortality is not used in normal runs, but it is
     % examined by the optimizer when it is used.
     [percentBleached, percentMortality] = ...
-        New_Stats_Bleach(bleachEvents, bleachState, mortState, lastYearAlive, ...
-        lastBleachEvent, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
+        Stats_Tables(bleachEvents, bleachState, mortState, lastYearAlive, ...
+        lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
         bleachParams);
 
     % Get the years when reefs first experienced lasting mortality.
