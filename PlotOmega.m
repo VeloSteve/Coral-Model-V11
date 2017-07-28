@@ -20,5 +20,5 @@ if showFactor
     % 0.7 seems to be close to a lower bound for rcp 6.0.
     caxis([.7 1]);
 else
-    caxis([2 4]);
+    caxis([2 4]); %#ok<UNRCH>
 end

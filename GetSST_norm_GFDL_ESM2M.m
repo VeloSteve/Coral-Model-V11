@@ -35,7 +35,7 @@ function [SST, Reefs_latlon, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, 
         % the first entry.
         startYear = str2double(datestr(TIME(1), 'yyyy'));
         
-    elseif Data == 2; % HadISST (through March 16, 2016)
+    elseif Data == 2 % HadISST (through March 16, 2016)
         load('~/Dropbox/Matlab/SymbiontGenetics/HadISST_SSTs.mat','time','HAD_latlon','SST_reefs');
         % 'HAD_latlon' gives lat/lon (1539 x 2)
         % 'SST_reefs' is temp in C ; size (1539 x 1755)

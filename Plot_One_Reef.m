@@ -31,12 +31,12 @@
 % 12-15-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
-            hist, Data, I, gi, ri, SGPath, outputPath, k, pdfDirectory, LOC, ...
+            hist, Data, SGPath, outputPath, k, pdfDirectory, LOC, ...
             NF, E, dateString, months)
     % Note that the persistent names are the same as in Plot_SST_Decimate.
     % The namespaces should be separate do there's no side effect.
-    persistent figHandle DHM Time;
-    persistent plotDHM1 plotDHM2;
+    persistent figHandle DHM Time; %#ok<PSET>
+    persistent plotDHM1; % doesn't need to be modified: plotDHM2;
     persistent plotSST1 plotSST2;
     persistent plotSD1 plotSD2;
     persistent plotCC1 scatCC2 scatCC1; 
@@ -67,14 +67,6 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
         factor = round(length(time)/months);
         time = decimate(time, factor, 'fir');
         temp = decimate(temp, factor, 'fir');
-        temp1 = decimate(gi(:, 1), factor, 'fir');
-        temp2 = decimate(gi(:, 2), factor, 'fir');
-        gi = [temp1 temp2];
-
-        temp1 = decimate(ri(:, 1), factor, 'fir');
-        temp2 = decimate(ri(:, 2), factor, 'fir');
-        ri = [temp1 temp2];
-        I = I/4;  % XXXX should be I*factor?
     end
     
     % Needed every time for output:
@@ -196,7 +188,6 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
 %    pos(1) = 0.055;
 %    pos(3) = 0.9;
 %    set(gca, 'Position', pos)
-        col=colormap;
         % smooth the data so plots can be overlaid
         % for the original plots, just use the S/C argument without
         % smoothing.
@@ -290,7 +281,7 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
             end
         end
         plotDHM1 = plot(Time(1501:end),DHM(k,:), 'k'); hold on;
-        plotDHM2 = plot([time(1) time(end)],[2 2],'r');
+        plotDHM2 = plot([time(1) time(end)],[2 2],'r'); %#ok<NASGU>
         datetick;
         legend('DHMs','DHM=2','Location','NorthWest');
         title('Degree Heating Months (MMMmax)');
@@ -309,7 +300,7 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
     format shortg;
     % The print line takes over half the time of the whole routine.  Break it
     % down and see why.
-    if Data == 1;
+    if Data == 1
         name = strcat('SDC_',dateString,'_',num2str(k),'_normSST',RCP,LOC,'prop',num2str(shortprop),'_NF',num2str(NF),'_E',num2str(E));
     else
         name = strcat('SDC_',dateString,'_',num2str(k),'_HADISST',LOC,'prop',num2str(shortprop),'_NF',num2str(NF),'_E',num2str(E));

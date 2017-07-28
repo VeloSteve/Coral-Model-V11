@@ -6,12 +6,10 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % 12-1-15                                                           %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%function [vgi, gi, S, C, I, hist, ri] = Init_genotype_popsize(Data, time, temp, Sn, Cn, E, vM, ...
-%                        a, b, SelV, KCb, KCm, KSb, KSm)
-function [vgi, gi, S, C, hist, ri] = Init_genotype_popsize(Data, time, ...
+function [vgi, gi, S, C, hist, ri] = Init_genotype_popsize(time, ...
                                         initializationIndex, temp, con, ...
                                         E, vM, SelV, superMode, superAdvantage, ...
-                                        startSymFractions, superInitRange, k)
+                                        startSymFractions, superInitRange)
     %% Initialize Symbiont Mean Genotype Dynamics and Variance (Eqns 1-2)
     % Inputs:
     % Data - which SST dataset to use
@@ -59,7 +57,7 @@ function [vgi, gi, S, C, hist, ri] = Init_genotype_popsize(Data, time, ...
     if col == 4
         if isempty(histSuper)
             % won't be applied, but needs some value
-            g(1, 3:4) = 0.0;
+            gi(1, 3:4) = 0.0;
         else
             gi(1, 3:4) = histSuper;
         end

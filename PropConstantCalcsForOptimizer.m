@@ -11,7 +11,11 @@
 % SST DATASET?
 Data = 1; % 1=ESM2M_norm
 %Data = 2; % 2=HADISST (through 3/16/16)
-if Data == 1, dataset = 'ESM2M'; else dataset = 'HadISST'; end
+if Data == 1
+    dataset = 'ESM2M';
+else
+    dataset = 'HadISST';
+end
 
 %% DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
 %for i={'rcp26','rcp85'}  

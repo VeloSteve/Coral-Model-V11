@@ -14,7 +14,7 @@ Data = 1;
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
 % Extract SSTs for a ALL reef grid cells
 scenario = 0;
-T(2880, 5, 4) = 0.0;
+Tquant(2880, 5, 4) = 0.0;
 for RCP = {'rcp85', 'rcp60', 'rcp45', 'rcp26'}
     scenario = scenario + 1;
     [SST, ~, TIME, startYear] = GetSST_norm_GFDL_ESM2M(sstPath, matPath, Data, RCP);
@@ -42,7 +42,7 @@ q1 = 2;
 q2 = 4;
 
 scenario = 0;
-rcpName = {'RCP 8.5', 'RCP 6.0', 'RCP 4.5', 'RCP 2.6'}
+rcpName = {'RCP 8.5', 'RCP 6.0', 'RCP 4.5', 'RCP 2.6'};
 col = [1 .2 .2; 0.95 0.95 0; .5 1 .5; .5 .5 1.0];
 for scenario = 4:-1:1
     bot = Tquant(:, q1, scenario);

@@ -101,7 +101,6 @@ check before using
         y(y==0) = -1;
         %fprintf('gComp sees label %s for set %d with range %0.1f to %0.1f\n', varargin{i+1}, i, min(y), max(y));
         % Deduce what's being plotted.
-        markerSize = 8;
         useLog = false;
         if ~isLine
             y = y + (bc-1)*0.04;
@@ -122,8 +121,6 @@ check before using
 
         end
         %fprintf('Spec: %s\n', spec);
-        ph = plot(x, y, spec, 'MarkerSize', markerSize);
-
 
         title(titleText);
 

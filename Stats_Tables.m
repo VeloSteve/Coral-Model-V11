@@ -17,14 +17,13 @@
 %     setup of this run.
 %   
 function [permBleached, percentMortality] = ...
-        Stats_Tables(bleachEvents, bleachState, mortState, lastYearAlive, ...
+        Stats_Tables(bleachState, mortState, lastYearAlive, ...
         lastBleachEvent, frequentBleaching, thisRun, allLatLon, outputPath, startYear, RCP, E, OA, ...
         bleachParams)
     % Subset all of the input arrays which list all reefs to just those
     % which are active in this run.  We don't care about reef IDs, just the
     % number and their latitude.
     if length(thisRun) < length(allLatLon)
-        bleachEvents = bleachEvents(thisRun, :, :);
         bleachState = bleachState(thisRun, :, :);
         mortState = mortState(thisRun, :, :);
         lastYearAlive = lastYearAlive(thisRun);
@@ -36,19 +35,11 @@ function [permBleached, percentMortality] = ...
         latitude = allLatLon(:, 2);
     end
     
-    % The number of coral types is one less than the number of the last
-    % index of bleachState.
-    nc = size(bleachState, 3) - 1;
-    ny = size(bleachState, 1);
-    nr = size(thisRun);
-    
     % Divide the world's reefs into 3 equal parts by latitude.
     % For everyx = 1 an equal split into 3 parts by latitude would be 642.
     % 7, 15 gives the closest match: 627, 654, 644 
     eqLim = 7;
     loLim = 15;
-    lower = [0 eqLim loLim 0];
-    upper = [eqLim loLim 90 90];
         
     % Warning: the psw2 optimization code assumes that 1950 is in column 2
     % of the output array, so it needs to be first here.
@@ -194,11 +185,11 @@ function [permBleached, percentMortality] = ...
     % Data for plotting bleaching histories.
     % Instead of creating the plot here, save the data for use in an
     % outside program which can compare different runs.
-    xForPlot = years;
-    yForPlot = allStress(5, :);
-    yEq = allStress(2, :);
-    yLo = allStress(3, :);
-    yHi = allStress(4, :);
+    xForPlot = years; %#ok<NASGU>
+    yForPlot = allStress(5, :); %#ok<NASGU>
+    yEq = allStress(2, :); %#ok<NASGU>
+    yLo = allStress(3, :); %#ok<NASGU>
+    yHi = allStress(4, :); %#ok<NASGU>
     save(strcat(outputPath, 'bleaching/BleachingHistory', RCP, 'E=', num2str(E), 'OA=', num2str(OA), '.mat'), 'xForPlot', 'yForPlot', 'yEq', 'yLo', 'yHi', 'bleachParams');
 end
 
