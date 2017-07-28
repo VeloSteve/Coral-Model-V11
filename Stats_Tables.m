@@ -104,6 +104,11 @@ function [permBleached, percentMortality] = ...
         frequentBleachingLat = frequentBleaching(ind, :, :);
         fbCombo = frequentBleachingLat(:, :, 1) ...
             | frequentBleachingLat(:, :, 2); % either coral counts
+        mortLat = mortState(ind, :, :);
+        mortCombo = mortLat(:, :, 1) | mortLat(:, :, 2);
+        bleachLat = bleachState(ind, :, :);
+        bleachCombo = bleachLat(:, :, 1) | bleachLat(:, :, 2);
+        bleachOrMort = mortCombo | bleachCombo;
         
         
         for n = 1:length(years)
@@ -112,6 +117,7 @@ function [permBleached, percentMortality] = ...
             permBleached(1, n) = yr;
             permBleached(lat+1, n) = 100*length(lastBleachLat(lastBleachLat <= yr)) / latCounts(lat);
 
+            % Permanent mortality
             percentMortality(1, n) = yr;
             mortalityCount = length(lastYearAliveLat(lastYearAliveLat <= yr));
             percentMortality(lat+1, n) = 100* mortalityCount / latCounts(lat);
@@ -121,28 +127,23 @@ function [permBleached, percentMortality] = ...
             bc = nnz(fb);
             highFrequency(lat+1, n) = 100 * bc  / latCounts(lat);
 
-%{
+            % To consider only living reefs for frequent bleaching, just
+            % change the divisor.
             frequentLive(1, n) = yr;
             live = latCounts(lat) - mortalityCount;
-            if live
+            if live > 0
                 frequentLive(lat+1, n) = 100 * bc / live;
             else
                 frequentLive(lat+1, n) = nan;
             end
 
+            % This is now defined to mean that either coral type is 
+            % bleached or dead.
             unrecovered(1, n) = yr;
-            % subset down to what matters
-            subsetM = subMass([subMass.year] <= yr);
-            subsetB = subBran([subBran.year] <= yr);
-            % countBleachedR is expensive, and is called once for each
-            % table cell. Since only the last entries for each reef are
-            % used in any one call, it could be worth doing that filtering
-            % between loops, possibly putting the years loop outside of the
-            % latitudes.
-            bleachedn = countBleachedR(subsetM, subsetB);
+            bmc = nnz(bleachOrMort(:, yIndex));
 
-            unrecovered(lat+1, n) = 100 * bleachedCt / latCounts(lat);
-%}            
+            unrecovered(lat+1, n) = 100 * bmc / latCounts(lat);
+           
         end
     end
        
@@ -182,14 +183,14 @@ function [permBleached, percentMortality] = ...
 
     logTwo('\nPercentage of reefs with more than one massive coral bleaching event in the previous 10 years.\n');
     printTable(labels, highFrequency, length(years));
-%{
-Enable as they are worked on...
+
     logTwo('\nPercentage of LIVING reefs with more than one bleaching event in the previous 10 years.\n');
     printTable(labels, frequentLive, length(years));
 
     logTwo('\nPercentage of reefs with at least one coral type in an unrecovered state.\n');
     printTable(labels, unrecovered, length(years));
-
+%{
+Enable as they are worked on...
     logTwo('\nPercentage of reefs with any form of current bleaching or mortality.\n');
     printTable(labels, allBleaching, length(years));
 %}
