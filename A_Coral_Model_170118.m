@@ -29,7 +29,7 @@ OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1; % 1;                % run code on every x reefs, plus "keyReefs"
+everyx = 50; % 1;                % run code on every x reefs, plus "keyReefs"
                                 % if everyx is one of 'eq', 'lo', 'hi' it
                                 % selects reefs for abs(latitude) bins [0,7],
                                 % (7, 14], or (14,90] respectively.
@@ -883,8 +883,7 @@ if ~skipPostProcessing
         save(fn, 'RCP', 'E', 'OA', 'firstBleachYears');
     end
 
-    logTwo('Bleaching by duration = %7.4f and by event = %7.4f\n', ...
-        Bleaching_85_10, Bleaching_85_10_By_Event);
+    logTwo('Bleaching by event = %6.4f\n', Bleaching_85_10_By_Event);
 end
 
 

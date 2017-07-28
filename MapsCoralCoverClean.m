@@ -25,7 +25,7 @@ activeLatLon(1:length(activeReefs), 2) = Reefs_latlon(activeReefs, 2);
 customColors = customScale();
 
 
-%{
+
 tName = strcat(modelChoices,'. Year Corals No Longer Persist');
 fileBase = strcat(fullDir, filePrefix,'_LastYrCoralMap');
 % Green points everywhere
@@ -44,7 +44,7 @@ if verLessThan('matlab', '8.2')
 else
     savefig(strcat(fileBase,'.fig'));
 end
-
+%{
 %% Make map showing # all bleaching events bn 1985-2010
 tName = 'Bleaching Events Between 1985-2010';
 outFile = strcat(fullDir, filePrefix,'_MortEvents8510Map','.pdf');

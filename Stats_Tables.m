@@ -67,6 +67,7 @@ function [permBleached, percentMortality] = ...
     highFrequency = permBleached;
     unrecovered = permBleached;
     frequentLive = permBleached; % For percent of still-living reefs seeing frequent bleaching.
+    allStress = permBleached;
      
     % Use region indexes to select from the various input arrays.
     indEq = find(abs(latitude) <= eqLim);
@@ -109,6 +110,7 @@ function [permBleached, percentMortality] = ...
         bleachLat = bleachState(ind, :, :);
         bleachCombo = bleachLat(:, :, 1) | bleachLat(:, :, 2);
         bleachOrMort = mortCombo | bleachCombo;
+        stressCombo = bleachOrMort | fbCombo;
         
         
         for n = 1:length(years)
@@ -122,7 +124,7 @@ function [permBleached, percentMortality] = ...
             mortalityCount = length(lastYearAliveLat(lastYearAliveLat <= yr));
             percentMortality(lat+1, n) = 100* mortalityCount / latCounts(lat);
 
-            fb = fbCombo(:, yIndex, :);
+            fb = fbCombo(:, yIndex);
             highFrequency(1, n) = yr;
             bc = nnz(fb);
             highFrequency(lat+1, n) = 100 * bc  / latCounts(lat);
@@ -141,8 +143,13 @@ function [permBleached, percentMortality] = ...
             % bleached or dead.
             unrecovered(1, n) = yr;
             bmc = nnz(bleachOrMort(:, yIndex));
-
             unrecovered(lat+1, n) = 100 * bmc / latCounts(lat);
+            
+            % The number we plot later - any negative state including
+            % frequent bleaching, mortality, or current bleaching.
+            allStress(1, n) = yr;
+            sc = nnz(stressCombo(:, yIndex));
+            allStress(lat+1, n) = 100 * sc / latCounts(lat);
            
         end
     end
@@ -164,17 +171,7 @@ function [permBleached, percentMortality] = ...
     labels{3, 3} = loLim;
     labels{4, 3} = max(latitude(:));
 
-    % Combine the last 3 arrays to indicate any form of bleaching or
-    % mortality.  Summing percentages is frowned upon, but the divisors
-    % are the same in each case.
-    allBleaching = unrecovered;
-    for i = 2:5
-        for j = 1:length(years)
-            allBleaching(i,j) = allBleaching(i,j) + highFrequency(i,j) ...
-                + percentMortality(i,j);
-        end
-    end
-    
+
     logTwo('Permanently bleached reefs as of the date given:\n');
     printTable(labels, permBleached, length(years));
 
@@ -189,20 +186,19 @@ function [permBleached, percentMortality] = ...
 
     logTwo('\nPercentage of reefs with at least one coral type in an unrecovered state.\n');
     printTable(labels, unrecovered, length(years));
-%{
-Enable as they are worked on...
+
     logTwo('\nPercentage of reefs with any form of current bleaching or mortality.\n');
-    printTable(labels, allBleaching, length(years));
-%}
+    printTable(labels, allStress, length(years));
+    
     
     % Data for plotting bleaching histories.
     % Instead of creating the plot here, save the data for use in an
     % outside program which can compare different runs.
     xForPlot = years;
-    yForPlot = allBleaching(5, :);
-    yEq = allBleaching(2, :);
-    yLo = allBleaching(3, :);
-    yHi = allBleaching(4, :);
+    yForPlot = allStress(5, :);
+    yEq = allStress(2, :);
+    yLo = allStress(3, :);
+    yHi = allStress(4, :);
     save(strcat(outputPath, 'bleaching/BleachingHistory', RCP, 'E=', num2str(E), 'OA=', num2str(OA), '.mat'), 'xForPlot', 'yForPlot', 'yEq', 'yLo', 'yHi', 'bleachParams');
 end
 
