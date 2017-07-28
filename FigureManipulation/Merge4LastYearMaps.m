@@ -8,7 +8,7 @@ titles = { ...
 inputPath = 'D:/GoogleDrive/Coral_Model_Steve/_Paper Versions/Figures/LastYearHealthy/';
 for i = 1:count
     % ESM2Mrcp26.E0.OA0_NF1_20170726_LastHealthyBothTypes.fig
-    n = strcat(inputPath, 'ESM2Mrcp', num2str(rcps(i)*10), '.E0.OA0_NF1_20170726_LastHealthyBothTypes');
+    n = strcat(inputPath, 'ESM2Mrcp', num2str(rcps(i)*10), '.E0.OA0_NF1_20170727_LastHealthyBothTypesV2');
     p1 = open(strcat(n,'.fig'));
     pax(i) = gca;
 end
