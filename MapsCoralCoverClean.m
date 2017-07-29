@@ -65,7 +65,6 @@ oneMap(15, activeLatLon(:, 1), activeLatLon(:, 2), eventsAllYears(activeReefs), 
 
 
 %% Figure 16  Same as 14 but with log2 of the number of events
-% events = bEvents(strcmp({bEvents.event}, 'BLEACHCOUNT'));
 % tName = 'Bleaching Events Between 1861-2100 (log base 2)';
 % outFile = strcat(fullDir, filePrefix, '_AllMortEventsMap_log2', '.pdf');
 % oneMap(16, activeLatLon(:, 1), activeLatLon(:, 2), log2(eventsAllYears(activeReefs)), [], jet, tName, outFile, false);
@@ -79,28 +78,30 @@ oneMap(15, activeLatLon(:, 1), activeLatLon(:, 2), eventsAllYears(activeReefs), 
 % indicators.
 % Store indexes, not years in lastHealthy, until just before plotting.
 firstUnhealthy = NaN(length(Reefs_latlon), 1);
+fbMass = frequentBleaching(:, :, 1);
+msMass = mortState(:, :, 1);
+bBoth = bleachState(:, :, end);
 
 for k = activeReefs
     % Frequent
-    ind = find(frequentBleaching(k, :, 1), 1, 'first');
+    ind = find(fbMass(k, :), 1, 'first');
     if ~isempty(ind)
         firstUnhealthy(k) = ind;
     end
     % Mortality (It may be that bleaching is always flagged when this is
     % true, so it could be skipped - but for now be safe.)
-    ind = find(mortState(k, :, 1), 1, 'first');
+    ind = find(msMass(k, :, 1), 1, 'first');
     if ~isempty(ind)
         firstUnhealthy(k) = min(firstUnhealthy(k), ind);
     end
     % Current bleaching
-    ind = find(bleachState(k, :), 1, 'first');
+    ind = find(bBoth(k, :), 1, 'first');
     if ~isempty(ind)
         firstUnhealthy(k) = min(firstUnhealthy(k), ind);
     end
 end
 % Convert from indices to year.  NaN stays NaN.
 firstUnhealthy = firstUnhealthy + fullYearRange(1) - 1;
-%cRange = [0, 20];
 tName = strcat(modelChoices,'. First Year of Unhealthy Reef');
 fileBase = strcat(fullDir, filePrefix, '_FirstUnHealthyReef');
 
