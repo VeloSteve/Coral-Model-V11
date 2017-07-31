@@ -22,13 +22,13 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_all Omega_fa
 
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
-RCP = 'rcp60'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
+RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
 E = 1;  % EVOLUTION ON (1) or OFF (0)?
 OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 1000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
@@ -50,7 +50,7 @@ superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
                 % 6 = use fixed delta like option 0, but start according to
                 %     first year of bleaching.
 
-superAdvantage = 1.0;           % Degrees C above native symbionts.
+superAdvantage = 0.0;           % Degrees C above native symbionts.
 startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
 
 % If this code is called from a script, we want some of the variables above
@@ -135,7 +135,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %keyReefs = [402 420];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
-keyReefs = [1 481];
+keyReefs = [ 610 1463];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
 % experi3.53ence 5 years of mortality by 2012.
@@ -459,7 +459,7 @@ parfor (parSet = 1:queueMax, parSwitch)
 
        
 
-        %fprintf('super will start at index %d\n', ssi);
+        %fprintf('super will start at index %d\n', suppressSI);
         %% MAIN LOOP: Integrate Equations 1-5 through 2100 using Runge-Kutta method
         [S, C, ri, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
                     ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
@@ -475,22 +475,23 @@ parfor (parSet = 1:queueMax, parSwitch)
         par_HistOrigEvolvedSum = par_HistOrigEvolvedSum + origEvolved;
 
         if any(keyReefs == k)  % temporary genotype diagnostic
-            %{
+
             suff = '';
             if superMode && superMode ~= 5
                 suff = sprintf('_%s_E%d_SymStrategy%d_Reef%d', RCP, E, superMode, k);
             elseif superMode == 0 || superMode == 5
                 suff = sprintf('_%s_E%d_SymStrategy%dAdv%0.2fC_Reef%d', RCP, E, superMode, superAdvantage, k);
             end
-            genotypeFigure(fullMapDir, suff, k, time, gi, ssi);
-
+            %{
+            genotypeFigure(fullMapDir, suff, k, time, gi, suppressSI);
+            %}
             % Growth rate vs. T as well
-            % TODO: dies when ssi = 0...
-            growthRateFigure(fullMapDir, suff, datestr(time(ssi), 'yyyy'), ...
-                k, temp, gi, vgi, ssi, ...
+            % TODO: dies when suppressSI = 0...
+            growthRateFigure(fullMapDir, suff, datestr(time(suppressSI), 'yyyy'), ...
+                k, temp, gi, vgi, suppressSI, ...
                 coralSymConstants, SelVx);
 
-           %}
+           
         end
 
         par_C_cum = par_C_cum + C;

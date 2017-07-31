@@ -1,6 +1,7 @@
 function BHSCO()
 %relPath = '../bleaching_history/';
 relPath = 'D:/CoralTest/V11Test_SC/bleaching/';
+relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching\';
 
 figure('color', 'w');
 set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 17, 11]);
