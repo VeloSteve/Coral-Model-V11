@@ -7,11 +7,11 @@ scriptVars.superMode = 0;
 scriptVars.superAdvantage = 0.0;
 
 %rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
-%rcpList = {'rcp26', 'rcp45', 'rcp60'};
+%rcpList = {'rcp45', 'rcp85'};
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
 
 % Now all the cases
-for ooo = 0:1
+for ooo = 0:1  %:1
     for eee = 0:1  %0:1
         for rrr = rcpList
             scriptVars.E = eee;

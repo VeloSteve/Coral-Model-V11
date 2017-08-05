@@ -28,7 +28,7 @@ OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
@@ -130,12 +130,13 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %keyReefs = [maxReefs 130 71 1691 1301 106 402 420 610 793 1354 1463 1541 ];
 %keyReefs = 1:maxReefs;
 % Large set to look at
-%keyReefs = [71 106 144 261 402 420 511 521 610 793 1301 1354 1463 1541 1638 1691 1701];
+keyReefs = [71 106 144 261 402 420 511 521 610 793 1301 1354 1463 1541 1638 1691 1701];
 %keyReefs = [keyReefs [99 420 1738]];
 %keyReefs = [402 420];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
-keyReefs = [ 610 1463];
+%keyReefs = [ 402];
+%keyReefs = [];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
 % experi3.53ence 5 years of mortality by 2012.
@@ -316,6 +317,8 @@ months = length(SSThist);
 assert(mod(months, 12) == 0, 'Calculations assume a time span of whole years.');
 years = months/12;
 stepsPerYear = 12/dt;
+% All years in this run:
+fullYearRange = [startYear startYear+years-1];
 % Array approach to creating the list of dates is over 100 times faster
 yyy = repmat(startYear:startYear+years-1, 12, 1); % all the years, repeated in 12 rows
 mmm = repmat(1:12, years, 1)';  % months 1-12 repeated for each year
@@ -486,12 +489,10 @@ parfor (parSet = 1:queueMax, parSwitch)
             genotypeFigure(fullMapDir, suff, k, time, gi, suppressSI);
             %}
             % Growth rate vs. T as well
-            % TODO: dies when suppressSI = 0...
+            % TODO: dies when suppressSI = 0
             growthRateFigure(fullMapDir, suff, datestr(time(suppressSI), 'yyyy'), ...
-                k, temp, gi, vgi, suppressSI, ...
-                coralSymConstants, SelVx);
-
-           
+                k, temp, fullYearRange, gi, vgi, suppressSI, ...
+                coralSymConstants, SelVx, RCP);         
         end
 
         par_C_cum = par_C_cum + C;
@@ -697,8 +698,7 @@ if ~skipPostProcessing
                 yearRange(2) = 10*ceil(yearRange(2)/10);
             end
         end
-        % All years in this run:
-        fullYearRange = [startYear startYear+years-1];
+
 
         if doMaps
             MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, ...

@@ -32,7 +32,7 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
             basePath = strcat(top, 'Coral-Model-V11/');
             sharedData = strcat(top, 'Coral-Model-Data/');
             %outputPath = basePath;
-            outputPath = 'D:/CoralTest/V11Test_SC/';  % C: for SSD D: for non-google directory
+            outputPath = 'D:/CoralTest/V11Test_FlipConstants/';  % C: for SSD D: for non-google directory
             %outputPath =  'D:/GoogleDrive/Coral_Model_Steve/Outputs_May8_May17/';
         case 4
             defaultThreads = 3;

@@ -44,13 +44,13 @@ function [permBleached, percentMortality] = ...
     % Warning: the psw2 optimization code assumes that 1950 is in column 2
     % of the output array, so it needs to be first here.
     % Points for graphing and estimating mortality years
-    %years = [1950 1965 1980 1990 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100];
+    years = [1950 1965 1980 1990 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100];
     % Extended version for 400 years
     %years = [1860 1875 1880 1885 1890 1895 1900 1925 1950 1980 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100 2125 2150 2175 2200 2205 2210 2215 2220 2225 2250 2260 ];
     % Minimal points for faster optimization runs:
     % years = [1950 2100];
     % Default, for a readable table.
-    years = [1950 2000 2016 2050 2075 2100];
+    % years = [1950 2000 2016 2050 2075 2100];
 
     % All tables start out with the same prealocation.
     permBleached = zeros(5,length(years));
@@ -97,12 +97,22 @@ function [permBleached, percentMortality] = ...
         fbCombo = frequentBleachingLat(:, :, 1) ...
             | frequentBleachingLat(:, :, 2); % either coral counts
         mortLat = mortState(ind, :, :);
-        mortCombo = mortLat(:, :, 1) | mortLat(:, :, 2);
+        % TODO - be sure we want AND here - it affect the last couple of
+        % tables and some graphs.
+        mortCombo = mortLat(:, :, 1) & mortLat(:, :, 2);
         bleachLat = bleachState(ind, :, :);
         bleachCombo = bleachLat(:, :, 1) | bleachLat(:, :, 2);
         bleachOrMort = mortCombo | bleachCombo;
         stressCombo = bleachOrMort | fbCombo;
         
+        % New stressCombo approach:
+        % A = massive is bleached, dead, or frequently bleached
+        % B = branching is bleached, dead, or frequently bleached
+        % stressed if A and B are true.
+        A = mortLat(:, :, 1) | bleachLat(:, :, 1) | frequentBleachingLat(:, :, 1);
+        B = mortLat(:, :, 2) | bleachLat(:, :, 2) | frequentBleachingLat(:, :, 2);
+        stressCombo = A & B;
+
         
         for n = 1:length(years)
             yr = years(n);

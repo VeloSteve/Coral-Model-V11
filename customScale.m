@@ -1,6 +1,14 @@
 function [cMap] = customScale()
     load('RedGreenYearsMap.mat');
-    cMap = customRGMap;
+    % customRGMap shifts through orange and yellow near the center.
+    % customRGShift moves this shift to later years for more resolution
+    % there.
+    % customOrangeBlue is more friendly to colorblind viewers, but probably
+    % isn't great on a blue ocean color.
+    % OrangeBlueLANL is direct from https://datascience.lanl.gov/data/colormaps/AsymmetricBlueOrangeDivergent-W5.xml
+    % OrangeBlueLANLMod  is a guess made before the one above, and avoiding
+    % white.
+    cMap = OrangeBlueLANL; %customRGMap;
     %{
     % Map code posted by Stephen Cobeldick at https://www.mathworks.com/matlabcentral/fileexchange/25536-red-blue-colormap
     m = 20;

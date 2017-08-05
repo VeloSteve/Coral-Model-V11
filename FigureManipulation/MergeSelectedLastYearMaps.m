@@ -12,10 +12,14 @@ for eee = 0:1
     end
 end
 panels = num;
-cmap = colormap(pax(1));
+% use this to get the color scale of one of the plots:
+%cmap = colormap(pax(1));
+% or this to load from a file
+addpath('..');
+cmap = customScale();
 
 yearRange = [2000 2100];
-ticks = [2000 2025 2050 2075 2100];
+ticks = [2000 2050 2100];
 
 figure('color', 'w');
 num = 0;
