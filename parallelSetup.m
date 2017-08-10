@@ -15,7 +15,7 @@ function [multiThread, queueMax] = parallelSetup(n)
         end
         fprintf('Using existing pool size with %d threads.\n', threads);
         poolReady = true;
-    elseif n == 0
+    elseif n <= 1
         % User wants no parallel threads.
         threads = 0;
         multiThread = false;
@@ -44,7 +44,7 @@ function [multiThread, queueMax] = parallelSetup(n)
         pool = parpool(threads);
         fprintf('Running with up to %d print threads.\n', pool.NumWorkers);
     elseif nargin == 0 && ~multiThread
-        fprintf('Multithreaded PDF generation is off.  Start a parallel pool to enable it.');
+        fprintf('Multithreaded computation is off.');
     end
     queueMax = threads;
 end

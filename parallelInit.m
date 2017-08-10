@@ -1,8 +1,8 @@
 function [parSwitch, queueMax, chunkSize, toDoPart] = parallelInit(queueMax, toDo)
-    parSwitch = queueMax;
     queueMax = max(1, queueMax);
     % No point in having more threads than reefs.
     queueMax = min(queueMax, length(toDo));
+    parSwitch = queueMax;
     % Split the toDo list into one nearly equal chunk per thread.
     % NOTE: chunkSize is the max, but some chunks will be smaller when the
     % reefs don't divide evenly.
@@ -24,6 +24,9 @@ function [parSwitch, queueMax, chunkSize, toDoPart] = parallelInit(queueMax, toD
             r2 = r1 + newSize - 1;
         end
     else
+        % Running a worker is slower if there's only one chunk of work.
+        % disp('Pool size zero.');
+        parSwitch = 0;
         toDoPart{1} = toDo;
     end
 end
