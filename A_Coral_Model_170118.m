@@ -32,7 +32,7 @@ everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
-doPlots = true;                 % For optimization runs, turn off all plotting.
+doPlots = false;                 % For optimization runs, turn off all plotting.
 doMaps = false;                  % XXX the "do" variables are confusing.  Reorganize!
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
@@ -42,7 +42,7 @@ newMortYears = 0; % If true, save a fresh set of "long mortality" years based on
 superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
                 % 1 = use mean of temperatures in the superInitYears time range.
                 % 2 = use max of temperatures in the superInitYears time range.
-                %     Modes 0 to 2 all start at 2035.
+                %     Modes 0 to 2 all start at superStart, 2035 by default.
                 % 3 = use mean of last 10 years before the end of the first 5-year mortality.
                 % 4 = use max of last 10 years before the end of the first 5-year mortality.
                 % 5 = use fixed delta like option 0, but start as in
@@ -52,6 +52,7 @@ superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
 
 superAdvantage = 0.0;           % Degrees C above native symbionts.
 startSymFractions = [1.0 0.0];  % Starting fraction for native and super symbionts.
+superStart = 2035;              % Start in this year for modes 0-2 and superAdvantage > 0.
 
 % If this code is called from a script, we want some of the variables above
 % to be overwritten.  Do that here before they are used in the code below.
@@ -77,8 +78,18 @@ elseif superMode >= 6
     fn = strcat('firstBleachYears_', RCP, '_', num2str(E));
     load(fn, 'firstBleachYears');
     superStartYear = firstBleachYears;
-else
-    superStartYear = 2035*ones(maxReefs, 1); % Until this date set S(:, 3:4) to zero.  Use 1861 to start from the beginning.
+elseif superAdvantage == 0.0
+    % If there's not advantage it's a case where there's no addition.
+    % Delay to the end or we'll end up "seeding" extra symbionts.
+    if strcmp(RCP, 'control400')
+        last = 1860+400+1;
+    else
+        last = 2100 + 1;
+    end
+    superStartYear = last*ones(maxReefs, 1); % Until this date set S(:, 3:4) to zero.  Use 1861 to start from the beginning.
+else  
+    % Start the symbionts in this fixed year for all reefs.
+    superStartYear = superStart*ones(maxReefs, 1); % Until this date set S(:, 3:4) to zero.  Use 1861 to start from the beginning.
 end
 assert(length(superStartYear) == maxReefs, 'By-year symbiont starts should have a start year for every reef.');
 
@@ -130,13 +141,13 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %keyReefs = [maxReefs 130 71 1691 1301 106 402 420 610 793 1354 1463 1541 ];
 %keyReefs = 1:maxReefs;
 % Large set to look at
-keyReefs = [71 106 144 261 402 420 511 521 610 793 1301 1354 1463 1541 1638 1691 1701];
+%keyReefs = [71 106 144 261 402 420 511 521 610 793 1301 1354 1463 1541 1638 1691 1701];
 %keyReefs = [keyReefs [99 420 1738]];
 %keyReefs = [402 420];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
-%keyReefs = [ 402];
-%keyReefs = [];
+keyReefs = [];
+%keyReefs = [402 610 823 1463];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
 % experi3.53ence 5 years of mortality by 2012.
@@ -394,6 +405,7 @@ end
 
 %% RUN EVOLUTIONARY MODEL
 iteratorHandle = selectIteratorFunction(length(time), Computer);
+% the last argument in the parfor specifies the maximum number of workers.
 parfor (parSet = 1:queueMax, parSwitch)
 %for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.

@@ -53,7 +53,7 @@ function [S, C, ri, gi, vgi, origEvolved] = timeIteration(timeSteps, S, C, dt, r
             S(i+1, 3:end) = S_seed(3:end) * superSeedFraction;
             %fprintf('Introduced S3 at %7.2d i = %d\n', S(i+1, 3), (i+1));
             if oneShot
-                S_seed(1:end) = 0.0;
+                S_seed(3:end) = 0.0;
             elseif superSeedFraction < 1
                 S_seed(3:end) = superSeedFraction * S_seed(3:end);
             end
