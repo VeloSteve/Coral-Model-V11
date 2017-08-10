@@ -28,7 +28,7 @@ OA = 0; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 1000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.
 allPDFs = false;                % if false, just prints for keyReefs.
@@ -406,8 +406,8 @@ end
 %% RUN EVOLUTIONARY MODEL
 iteratorHandle = selectIteratorFunction(length(time), Computer);
 % the last argument in the parfor specifies the maximum number of workers.
-parfor (parSet = 1:queueMax, parSwitch)
-%for parSet = 1:queueMax
+%parfor (parSet = 1:queueMax, parSwitch)
+for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
