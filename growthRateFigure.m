@@ -5,12 +5,21 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
         % vgi - 2D array, the same size as S and C, with symbiont variance.
         % gi  - Symbiont mean genotype over time
     
-    vg(1) = vgi(ssi+1, 1);
-    vg(2) = vgi(ssi+1, 3);
-    g(1) = gi(ssi+1, 1);
-    g(2) = gi(ssi+1, 3);
-    t0 = temp(ssi+1);
-
+    if ssi >= length(vgi)
+        sEnd = length(vgi);
+        vg(1) = vgi(sEnd, 1);
+        vg(2) = vgi(sEnd, 3);
+        g(1) = gi(sEnd, 1);
+        g(2) = gi(sEnd, 3);
+        t0 = temp(sEnd);
+    else
+        vg(1) = vgi(ssi+1, 1);
+        vg(2) = vgi(ssi+1, 3);
+        g(1) = gi(ssi+1, 1);
+        g(2) = gi(ssi+1, 3);
+        t0 = temp(ssi+1);
+    end
+    
     tMin = 15; %20;
     tMax = 35; %32;
     growthScale = [0.0 0.6];
@@ -78,7 +87,7 @@ function growthRateFigure(fullDir, suffix, yearStr, k, temp, fullYearRange, gi, 
     patch('DisplayName', 'Recent T Range', 'YData', ty, 'XData', tx, 'FaceAlpha', 0.2, 'LineStyle', 'none', 'FaceColor', [1.0 .7 .7])
 
     set(gca, 'FontSize', 21);
-    t = sprintf('Growth rate vs T for Reef %d in %s, RCP = %d', k, yearStr, str2double(extractAfter(RCP, 'rcp'))/10.0);
+    t = sprintf('Growth rate vs T for Reef %d in %s, RCP = %3.1f', k, yearStr, str2double(extractAfter(RCP, 'rcp'))/10.0);
     title(t);
     xlabel('Temperature (C)');
     ylabel('Growth Rate');
