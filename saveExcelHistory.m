@@ -4,7 +4,6 @@ function [ ] = saveExcelHistory( basePath, now, RCP, E, everyx, queueMax, ...
     filename = strcat(basePath, 'RunSummaries.xlsx');
     sheet = 'Run Info';
     oldLines = 0;
-    saveToExcel = 1;
     if exist(filename, 'file')
         [~, txt, ~] = xlsread(filename, sheet, 'A:A');
         oldLines = length(txt);
@@ -21,7 +20,7 @@ function [ ] = saveExcelHistory( basePath, now, RCP, E, everyx, queueMax, ...
                     case 'Skip saving'
                         disp([choice ' not saving.'])
                         unsure = 0;
-                        saveToExcel = 0;
+                        return;
                     case 'Try again'
                         disp([choice ' re-checking file.'])
                 end

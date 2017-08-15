@@ -583,12 +583,10 @@ parfor (parSet = 1:queueMax, parSwitch)
 
 
 end % End of parfor loop
-% Clear variables use only as inputs inside the loop.
+% Clear variables used only as inputs inside the loop.
 clearvars SST_chunk Omega_chunk LatLon_chunk;
 
 % Build these variables from the chunks.
-clearvars SST_chunk;
-
 % bleachEvents_chunk contains a chunk per worker.  Each worker's chunk
 % contains a 3D array where the first index is the sequential number of the
 % reef in that to-do chunk.  Here we build a full 3D array for all possible
@@ -616,14 +614,14 @@ clearvars bleachEvents_chunk bleachState_chunk mortState_chunk; % release some m
 
 C_yearly = horzcat(C_year_chunk{:});
 % Total coral cover across all reefs, for ploting shift of dominance.
-C_cumulative = zeros(length(time), coralSymConstants.Sn*coralSymConstants.Cn);
-Massive_dom_cumulative = zeros(length(time), 1);
+% C_cumulative = zeros(length(time), coralSymConstants.Sn*coralSymConstants.Cn);
+% Massive_dom_cumulative = zeros(length(time), 1);
 superSum = 0.0;
 histSum = 0.0;
 histEvSum = 0.0;
 for i = 1:queueMax
-    C_cumulative = C_cumulative + C_cum_chunk{i};
-    Massive_dom_cumulative = Massive_dom_cumulative + Massive_dom_chunk{i};
+    % C_cumulative = C_cumulative + C_cum_chunk{i};
+    % Massive_dom_cumulative = Massive_dom_cumulative + Massive_dom_chunk{i};
     superSum = superSum + histSuper_chunk(i);
     histSum = histSum + histOrig_chunk(i);
     histEvSum = histEvSum + histOrigEvolved_chunk(i);
@@ -656,13 +654,8 @@ if ~skipPostProcessing
     fprintf('Bleaching by event = %6.4f\n', ...
         Bleaching_85_10_By_Event);
 
-    % Last modeled year, so we don't count a coral which lives to then as
-    % dead.
-    lastYear = str2double(datestr(TIME(end), 'yyyy'));
-
-    % Build an array with the last year each reef is alive.
-    % First add a column (indexed r) to mortState which is true when all
-    % coral types are dead.
+    % Build an array with the last year each reef is alive. First add a
+    % column to mortState which is true when all coral types are dead.
     % Also find the last bleaching event here.
     fullReef = coralSymConstants.Cn + 1;
     lastYearAlive = nan(maxReefs, 1);
@@ -753,7 +746,6 @@ end % End postprocessing block.
 elapsed = toc(timerStart);
 logTwo('Finished in %7.1f seconds.\n', elapsed);
 logTwo('Finished at %s\n', datestr(now));
-fclose('all'); % Just the file used by logTwo, normally.
 
 %% After each run, update an excel file with descriptive information.
 % 1) There seems to be no easy way to know the number of rows in the file, so
@@ -770,3 +762,6 @@ if ~exist('optimizerMode', 'var') || optimizerMode == false && ...
     saveExcelHistory(basePath, now, RCP, E, everyx, queueMax, elapsed, ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end
+%% Cleanup
+fclose('all'); % Just the file used by logTwo, normally.
+clearvars SST Omega_factor C_yearly
