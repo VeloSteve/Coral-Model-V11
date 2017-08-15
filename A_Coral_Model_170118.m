@@ -28,7 +28,7 @@ OA = 1; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 100; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.  Also,
                     % if everyx >= 10000, only do reefs specifed in
@@ -45,6 +45,7 @@ saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SS
 
 % Super symbiont options
 newMortYears = false; % If true, save a fresh set of "long mortality" years based on this run.
+                     % A map of those years is generated.  This also saves the years of first full-reef bleaching.
 superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
                 % 1 = use mean of temperatures in the superInitYears time range.
                 % 2 = use max of temperatures in the superInitYears time range.
@@ -755,41 +756,15 @@ if ~skipPostProcessing
         lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
         bleachParams);
 
-    % Get the years when reefs first experienced lasting mortality.
-    % This isn't wanted every run, and certainly not when super symbionts
-    % are introduced in a varable way.
+    % Get the years when reefs first experienced lasting mortality and 
+    % bleaching.  This isn't wanted in every run, and certainly not when 
+    % super symbionts are introduced in a variable way.
     if superMode == 0 && newMortYears
-        longMortYears = getFiveYearMortality(mortState, startYear);
-        fn = strcat('longMortYears_', RCP, '_', num2str(E));
-        save(fn, 'RCP', 'E', 'OA', 'longMortYears');
-        MapsSymbiontYears(fullMapDir, modelChoices, filePrefix, longMortYears, Reefs_latlon);
-        quants = [0.005 .05 .25 .5 .75 .95 0.995];
-        qLong = quantile(longMortYears, quants);
-        logTwo('Quantile fractions for the new longMortYears array:\n');
-        logTwo('Fraction  Year\n');
-        fmt = repmat('%8.3f', 1, length(quants));
-        logTwo(strcat(fmt,'\n'), quants);
-        fmt = repmat('%8d', 1, length(quants));
-        logTwo(strcat(fmt,'\n'), qLong);
-        
-        % Same for first full-reef bleaching
-        bs = bleachState(:, :, size(bleachState,3));
-        firstBleachYears = zeros(maxReefs, 1);
-        for k = 1:maxReefs
-            ind = find(bs(k, :), 1);
-            if ~isempty(ind)
-                firstBleachYears(k) = ind + startYear - 1;
-            end
+        if everyx ~= 1
+            disp('WARNING: saving mortality and bleaching should only be done when all reefs are computed.');
         end
-        fn = strcat('firstBleachYears_', RCP, '_', num2str(E));
-        save(fn, 'RCP', 'E', 'OA', 'firstBleachYears');
-        qBleach = quantile(firstBleachYears, quants);
-        logTwo('Quantile fractions for the new firstBleachYears array:\n');
-        logTwo('Fraction  Year\n');
-        fmt = repmat('%8.3f', 1, length(quants));
-        logTwo(strcat(fmt,'\n'), quants);
-        fmt = repmat('%8d', 1, length(quants));
-        logTwo(strcat(fmt,'\n'), qBleach);
+        saveMortYears(mortState, startYear, RCP, E, OA, fullMapDir, ...
+            modelChoices, filePrefix, Reefs_latlon, bleachState, maxReefs);
     end
 
     logTwo('Bleaching by event = %6.4f\n', Bleaching_85_10_By_Event);
