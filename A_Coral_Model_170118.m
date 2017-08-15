@@ -18,7 +18,7 @@ Computer = 0; % 1=office; 2=laptop; 3=Steve; 4=Steve laptop; 0 = autodetect
     = useComputer(Computer);
 
 %% Clear variables which I want to examine between runs, but not carry over.
-clearvars bleachEvents bleachState mortState resultSimilarity Omega_all Omega_factor;
+clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor;
 
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
@@ -284,6 +284,7 @@ else
     % parallel loop simpler.  Note that only the last value is set.
     Omega_factor(maxReefs, lenTIME) = 0.0;
 end
+clearvars Omega_all;
 
 %% SUB-SAMPLE REEF GRID CELLS
 % Since just iterating with "everyx" won't hit all keyReefs, build a list
