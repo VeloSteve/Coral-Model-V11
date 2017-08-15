@@ -28,7 +28,7 @@ OA = 1; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 100; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.  Also,
                     % if everyx >= 10000, only do reefs specifed in
@@ -263,10 +263,7 @@ assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 %% LOAD Omega (aragonite saturation) values if needed
 
 if OA == 1
-    
-    
-    
-    % To hardwire OA for testing control cased: Normally just pass RCP!
+    % To hardwire OA for testing control cases: Normally just pass RCP!
     % RCPfake = 'rcp60';
     %[Omega_all] = GetOmega(SGPath, RCPfake);
     
@@ -322,7 +319,6 @@ else
 end
 pswInputs = pswInputs(:, propTest);
 
-% XXX this changes results - don't do it! psw2_new = psw2_new(:, propTest);  % no need to carry columns we never use.
 %% Constants moved outside of the loop so they are only defined once:
 C_seed = [0.1*10^7 0.01*10^7]; % mass branch
 S_seed = [0.1*10^6 0.1*10^6 0.1*10^6 0.1*10^6];  % This was a single value until 2/17/2017
@@ -330,10 +326,9 @@ S_seed = [0.1*10^6 0.1*10^6 0.1*10^6 0.1*10^6];  % This was a single value until
 % Load .mat file for Coral and Symbiont genetics constants
 % As of 1/3/2017 the file contains a structure rather than individual
 % variables.
-load(strcat(matPath, 'Coral_Sym_constants_2.mat')); % default is evolution OFF
-% XXX override Sn for testing.
-%coralSymConstants.Sn = 1;
-assert(length(startSymFractions) == coralSymConstants.Sn, 'Symbiont start fractions should match number of symbionts.');
+load(strcat(matPath, 'Coral_Sym_constants_2.mat'));
+assert(length(startSymFractions) == coralSymConstants.Sn, ...
+    'Symbiont start fractions should match number of symbionts.');
 
 % Mutational Variance w (E=1) and w/o Evolution (E=0)
 if E==0
@@ -346,34 +341,18 @@ MutV  = [vM vM];               % Mutational variance matrix for symbiont calcs
 MutVx = repmat(MutV,1,coralSymConstants.Sn);     % Mutational variance matrix for coral calcs
 % January 2016, more variables need replication when Sn > 1
 coralSymConstants.EnvVx = repmat(coralSymConstants.EnvV,1,coralSymConstants.Sn);     % Environmental variance matrix
-%XXX
 coralSymConstants.KSx = repmat(coralSymConstants.KS,1,coralSymConstants.Sn);     % Environmental variance matrix
 
-
-
 %% Set up indexing and time arrays before entering the main loop.
+months = length(TIME);
 
-% Moved from Interp_data since it doesn't change between reefs.
-% Requires a dummy read of SSTHist for sizing.
-SST_LOC = SST(1, :);                     % Reef grid cell location
-SSThist = SST_LOC';
-
-% NOTE: the next 7 lines of code just create a duplicate of TIME,
-% called tim.  Why?
-months = length(SSThist);
 assert(mod(months, 12) == 0, 'Calculations assume a time span of whole years.');
 years = months/12;
 stepsPerYear = 12/dt;
 % All years in this run:
 fullYearRange = [startYear startYear+years-1];
-% Array approach to creating the list of dates is over 100 times faster
-yyy = repmat(startYear:startYear+years-1, 12, 1); % all the years, repeated in 12 rows
-mmm = repmat(1:12, years, 1)';  % months 1-12 repeated for each year
-ddd = 15*ones(12, years);        % day 15
-tim = datenum(yyy, mmm, ddd);   % the big saving is here
-tim = tim(:)';                  % turn from a 2D array to 1D as needed below.
 
-time = interp(tim,1/dt,1,0.0001)'; % Interpolate time 4X times (8X when dt = 0.125)
+time = interp(TIME,1/dt,1,0.0001)'; % Interpolate time 4X times (8X when dt = 0.125)
 % Set index for mean historical Temp between 1861-2000 (ESM2M_historical; yrs used in Baskett et al 2009)
 % Note: original code had a different end point for Data=2 than Data=1.
 initIndex = findDateIndex(strcat('30-Dec-', initYear), strcat('31-Dec-', initYear), time);
