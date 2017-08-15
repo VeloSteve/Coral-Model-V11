@@ -9,7 +9,6 @@ function handle =  selectIteratorFunction(select, Computer)
     % Comments show the original case the code was compiled for, but any
     % case with the same array sizes is a match.
     
-    select = 0;
     sourceFile1 = dir('timeIteration.m');
     sourceDate1 = sourceFile1.datenum;
     sourceFile2 = dir('Runge_Kutta_2_min0_160914.m');

@@ -2,4 +2,8 @@
 *.m~
 *.asv
 *.swp
+*.png
+*.fig
+*.gif
+*.psd
 codegen/*

@@ -51,7 +51,7 @@ function Plot_One_Reef(C, S, bleachEvent, psw2, time, temp, lat, lon, RCP, ...
     
     fontSize = 18;
     % control the X axis ticks;
-    fiftyYears = 365.25*50;  % 1 unit per day it datetime form
+    fiftyYears = 365.25*50;  % 1 unit per day in datetime form
     tickStart = floor(1850*365.25);
     tickEnd = floor(2100*365.25);
     tickVals = tickStart:fiftyYears:tickEnd;

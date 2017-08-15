@@ -8,7 +8,7 @@ scriptVars.superAdvantage = 0.0;
 
 %rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
 %rcpList = {'rcp45', 'rcp85'};
-rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
+rcpList = {'rcp26', 'rcp45', 'rcp85'};
 
 % Now all the cases
 for ooo = 0:1  %:1

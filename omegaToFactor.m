@@ -7,9 +7,46 @@ function [f] = omegaToFactor(a)
     
     % Most values are between 1 and 4, so just apply the equation to every
     % point first.  Some will be overwritten.
-    f = (1-(4-a)*0.15);
-    
-    % Special cases - f = 0 for omega at 1 or below and 1 for >= 4
-    f(a <= 1) = 0.0;
-    f(a >= 4) = 1.0;
+    version = 1;
+    switch version
+        case 0
+            f = (1-(4-a)*0.15);
+            
+            % Special cases - f = 0 for omega at 1 or below and 1 for >= 4
+            f(a <= 1) = 0.0;
+            f(a >= 4) = 1.0;
+            
+
+        case 1
+            % Try an idea from John Dunne, 8/10/2017 to see if there's more effect.
+            % Quote:
+            % an alternative function, also consistent with the Chan and Connolly
+            % analysis, wherein
+            % f = max(0,min(1,(omega-omin)/(omega-omin+ko)*(4-omin+ko)/(4-omin)
+            % where omin is 0.6 to be consistent with the significant calcification
+            % below omega=1 and ko=3 to reproduce the change in slope between he
+            % low and high studies.
+            omin = 0.6;
+            ko = 3.0;
+            f = max(0,min(1,(a-omin)./(a-omin+ko)*(4-omin+ko)/(4-omin) ));
+        case 2
+            % Old format, but variable slope (base is 0.15)
+            f = (1-(4-a)*0.60);
+            f(a <= 1) = 0.0;
+            f(a >= 4) = 1.0;
+        otherwise
+            error('Invalid Omega factor option');
+    end
 end
+
+% for reference, the old code looked like this in V5-V9:
+%{
+    if Omega_all(k,i) >= 4
+        G = [Gm Gb];
+    elseif Omega_all(k,i) <= 1
+        G = [0 0];
+    else
+        G = [Gm Gb] - [Gm Gb]*(4-Omega_all(k,i))*0.15;
+        %G = omega/(omega+2.65)/3.517*(3.517+2.65)*100;
+    end
+%}

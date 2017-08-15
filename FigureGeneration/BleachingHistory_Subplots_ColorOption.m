@@ -6,11 +6,22 @@ relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Pan
 figure('color', 'w');
 set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 17, 11]);
 
-% Make 4 subplots across, each for one rcp scenario.
+% Make subplots across, each for one rcp scenario.
 % Within each, have lines for E=0/1 and OA=0/1
 rcpList = {'rcp26', 'rcp45', 'rcp60', 'rcp85'};
 rcpName = {'RCP 2.6', 'RCP 4.5', 'RCP 6.0', 'RCP 8.5'};
 
+    paperYears26 = [2000 2020 2028 2039 2040 2041 2044 2050 2060 2080 2099];
+    paperHFB26   = [0.5  4.0  11.0 31.0 30.0 29.0 27.0 17.0 18.0 23.0 17.0];
+    
+    paperYears45 = [2000 2020 2028 2039 2040 2041 2044 2050 2058 2060 2070 2075 2080 2099];
+    paperHFB45   = [0.5  7.5  12.5 30.0 30.0 28.0 36.0 55.0 74.5 70.0 75.0 89.0 92.0 97.0];
+    
+    paperYears85 = [2000 2020 2028 2039 2040 2041 2044 2050 2060 2080];
+    paperHFB85   = [0.0  4.0  6.0  58.0 67.0 72.0 87.0 87.0 98.0 100.0];
+    paperYears60 = [2000 2020 2028 2039 2040 2041 2044 2050 2056 2060 2080 2099];
+    paperHFB60   = [0.5  2.5  7.0  25.0 30.0 33.0 42.0 46.0 51.0 61.0 98.0 100.0];
+    
 legText = {};
 legCount = 1;
 for i = 1:4
@@ -31,7 +42,17 @@ for i = 1:4
     end
     % x values are the same for all. Use the latest file;
     load(hFile, 'xForPlot');
-    oneSubplot(xForPlot, cases, legText, rcpName{i}, i);
+    if strcmp(rcpList{i}, 'rcp85')
+        oneSubplot(xForPlot, cases, legText, rcpName{i}, i, paperYears85, paperHFB85);
+    elseif strcmp(rcpList{i}, 'rcp60')
+        oneSubplot(xForPlot, cases, legText, rcpName{i}, i, paperYears60, paperHFB60);
+    elseif strcmp(rcpList{i}, 'rcp26')
+        oneSubplot(xForPlot, cases, legText, rcpName{i}, i, paperYears26, paperHFB26);    
+    elseif strcmp(rcpList{i}, 'rcp45')
+        oneSubplot(xForPlot, cases, legText, rcpName{i}, i, paperYears45, paperHFB45);
+    else
+        oneSubplot(xForPlot, cases, legText, rcpName{i}, i);
+    end
     if i == 1
         yHandle = ylabel({'Percent Current Bleaching,'; 'Frequent Bleaching, or Mortality'},'FontSize',22);
         set(yHandle, 'Position', [1925 -10 0])
@@ -40,7 +61,7 @@ for i = 1:4
 end
 end
 
-function oneSubplot(X, Yset, legText, tText, baseColor) 
+function oneSubplot(X, Yset, legText, tText, baseColor, extraX, extraY) 
 
     % Create axes
     %axes1 = axes;
@@ -75,6 +96,16 @@ function oneSubplot(X, Yset, legText, tText, baseColor)
         if i == 2 || i == 4
             set(plot1(i), 'LineStyle', '--');
         end     
+    end
+    if nargin == 7
+        % Add the Logan GCB line
+        hold on;
+        plot2 = plot(extraX, extraY);
+        set(plot2,...
+            'DisplayName','Logan et al. 2014', ...
+            'Color', [0 0 0], ...
+            'LineWidth', 2);
+        hold off;
     end
 
     % Create xlabel

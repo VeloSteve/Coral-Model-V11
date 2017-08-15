@@ -22,17 +22,19 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_all Omega_fa
 
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
-RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
+RCP = 'rcp45'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
 E = 1;  % EVOLUTION ON (1) or OFF (0)?
-OA = 0; % Ocean Acidification ON (1) or OFF (0)?
+OA = 1; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 10000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
-                    % bins [0,7], (7, 14], or (14,90] respectively.
+                    % bins [0,7], (7, 14], or (14,90] respectively.  Also,
+                    % if everyx >= 10000, only do reefs specifed in
+                    % keyReefs
 allPDFs = false;                % if false, just prints for keyReefs.
-doPlots = false;                 % For optimization runs, turn off all plotting.
+doPlots = true;                 % For optimization runs, turn off all plotting.
 doMaps = false;                  % XXX the "do" variables are confusing.  Reorganize!
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
@@ -132,6 +134,9 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 % Rarotonga
 % 103 [
 %
+% Lee Stocking Island, for comparison to Fitt et al. 2000.
+keyReefs = [366];
+%
 %keyReefs = [106 144 402 420 610 793 1354 1463 1541 1638];
 % Reefs that give good matches between 12/13 and original bleaching: 951, 1001
 % Reefs with the most bleaching: 952, 968
@@ -146,7 +151,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %keyReefs = [402 420];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
-keyReefs = [];
+%keyReefs = [144];
 %keyReefs = [402 610 823 1463];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
@@ -250,7 +255,22 @@ assert(maxReefs == length(Reefs_latlon), 'maxReefs must match the input data');
 %% LOAD Omega (aragonite saturation) values if needed
 
 if OA == 1
+    
+    
+    
+    % To hardwire OA for testing control cased: Normally just pass RCP!
+    % RCPfake = 'rcp60';
+    %[Omega_all] = GetOmega(SGPath, RCPfake);
+    
     [Omega_all] = GetOmega(SGPath, RCP);
+    % Enlarge the array to match the extended control400 array
+    %{
+    copyLine = Omega_all(:, 2880);
+    for iii = lenTIME:-1:2881
+        Omega_all(:, iii) = copyLine;
+    end
+    %}
+    
     % Convert omegas to growth-factor multipliers so there's
     % less logic inside the time interations.
     [Omega_factor] = omegaToFactor(Omega_all);
@@ -264,12 +284,20 @@ end
 % Since just iterating with "everyx" won't hit all keyReefs, build a list
 % of reefs for the current run.
 if isnumeric(everyx)
-    toDo = 1:everyx:maxReefs;   % as specified by everyx
+    if everyx >= 10000
+        % Only use keyReefs
+        toDo = [];
+    else
+        toDo = 1:everyx:maxReefs;   % as specified by everyx
+    end
 else
     % everyx can specify a reef area (eq, lo, hi)
     toDo = latitudeBin(everyx, Reefs_latlon);
 end
 toDo = unique([toDo keyReefs]); % add keyReefs defined above
+if isempty(toDo)
+    error('No reefs specified.  Exiting.');
+end
 reefsThisRun = length(toDo);
 logTwo('Modeling %d reefs.\n', reefsThisRun);
 
@@ -406,8 +434,8 @@ end
 %% RUN EVOLUTIONARY MODEL
 iteratorHandle = selectIteratorFunction(length(time), Computer);
 % the last argument in the parfor specifies the maximum number of workers.
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -476,6 +504,8 @@ for parSet = 1:queueMax
 
         %fprintf('super will start at index %d\n', suppressSI);
         %% MAIN LOOP: Integrate Equations 1-5 through 2100 using Runge-Kutta method
+        % timeIteration is called here, with the version determined by
+        % iteratorHandle.
         [S, C, ri, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
                     ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
@@ -502,9 +532,11 @@ for parSet = 1:queueMax
             %}
             % Growth rate vs. T as well
             % TODO: dies when suppressSI = 0
-            growthRateFigure(fullMapDir, suff, datestr(time(suppressSI), 'yyyy'), ...
-                k, temp, fullYearRange, gi, vgi, suppressSI, ...
-                coralSymConstants, SelVx, RCP);         
+            if strcmp(RCP(1:3), 'rcp')
+                growthRateFigure(fullMapDir, suff, datestr(time(suppressSI), 'yyyy'), ...
+                    k, temp, fullYearRange, gi, vgi, suppressSI, ...
+                    coralSymConstants, SelVx, RCP);         
+            end
         end
 
         par_C_cum = par_C_cum + C;
@@ -604,7 +636,7 @@ for i = 1:queueMax
     histSum = histSum + histOrig_chunk(i);
     histEvSum = histEvSum + histOrigEvolved_chunk(i);
 end
-clearvars C_cum_chunk Massive_dom_chunk histSuper_chunk histOrig_chunk histOrigEvolved_chunk;
+clearvars C_cum_chunk C_year_chunk Massive_dom_chunk histSuper_chunk histOrig_chunk histOrigEvolved_chunk;
 superSum = superSum/reefsThisRun;
 histSum = histSum/reefsThisRun;
 histEvSum = histEvSum/reefsThisRun;
@@ -733,9 +765,9 @@ if ~skipPostProcessing
         span = (startYear:startYear+years-1)';
 
         if superMode && superMode ~= 5
-            suffix = sprintf('_%s_E%d_SymStrategy%d', RCP, E, superMode);
+            suffix = sprintf('_%s_E%dOA%d_SymStrategy%d', RCP, E, OA, superMode);
         elseif superMode == 0 || superMode == 5
-            suffix = sprintf('_%s_E%d_SymStrategy%dAdv%0.2fC', RCP, E, superMode, superAdvantage);
+            suffix = sprintf('_%s_E%dOA%d_SymStrategy%dAdv%0.2fC', RCP, E, OA, superMode, superAdvantage);
         end
         coralCoverFigure(fullMapDir, suffix, [span;flipud(span)], ...           % x values for areas
             [C_quant(:,1,1);flipud(C_quant(:,5,1))], ...    % wide quantiles, massive
