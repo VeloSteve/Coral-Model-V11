@@ -7,12 +7,32 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [] = MapsCoralCoverClean(fullDir, Reefs_latlon, activeReefs, ...
     lastYearAlive, events85_2010, eventsAllYears, frequentBleaching, ...
-    mortState, bleachState, yearRange, fullYearRange, modelChoices, filePrefix )
+    mortState, bleachState, fullYearRange, modelChoices, filePrefix )
 % Add paths and load mortality statistics
 %load(strcat('~/Dropbox/Matlab/SymbiontGenetics/',filename,'/201616_testNF_1925reefs.mat'),'Mort_stats')
 format shortg;
 % filename = '201616_figs'; %filename = strcat(dateString,'_figs'); mkdir(filename); % location to save files
 % map %% NOTE: worldmap doesn't seem to be working on work computer
+
+%% yearRange provides the scale for all time related color bars.  It spans
+% all years  during which a reef died, rounded out to the nearest ten.  If
+% no reefs die, a default of 1960 to 2100 is used.
+if ~any(lastYearAlive)
+    yearRange = [1960 2100];
+else
+    yearRange = [min(lastYearAlive) max(lastYearAlive)];
+    % Plotting chokes if the values are equal.
+    if yearRange(1) == yearRange(2)
+        yearRange(2) = yearRange(2) + 1;
+    end
+    % Also round out to a multiple of 10
+    if mod(yearRange(1), 10)
+        yearRange(1) = 10*floor(yearRange(1)/10);
+    end
+    if mod(yearRange(2), 10)
+        yearRange(2) = 10*ceil(yearRange(2)/10);
+    end
+end
 
 %% Make map of last mortality event recorded
 

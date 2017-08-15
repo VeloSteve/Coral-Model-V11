@@ -28,19 +28,23 @@ OA = 1; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 10000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.  Also,
                     % if everyx >= 10000, only do reefs specifed in
                     % keyReefs
 allPDFs = false;                % if false, just prints for keyReefs.
-doPlots = true;                 % For optimization runs, turn off all plotting.
-doMaps = false;                  % XXX the "do" variables are confusing.  Reorganize!
+doPlots = true;                 % For optimization runs, turn off all plotting regardless
+                                % of the individual flags below.
+doCoralCoverMaps = false;        % World maps of cover, survival, etc. 
+doCoralCoverFigure = true;     % Plot cover vs. time
+doGenotypeFigure = false;
+doGrowthRateFigure = false;
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
 % Super symbiont options
-newMortYears = 0; % If true, save a fresh set of "long mortality" years based on this run.
+newMortYears = false; % If true, save a fresh set of "long mortality" years based on this run.
 superMode = 0;  % 0 = add superAdvantage temperature to standard "hist" value.
                 % 1 = use mean of temperatures in the superInitYears time range.
                 % 2 = use max of temperatures in the superInitYears time range.
@@ -135,7 +139,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 % 103 [
 %
 % Lee Stocking Island, for comparison to Fitt et al. 2000.
-keyReefs = [366];
+keyReefs = [366 144];
 %
 %keyReefs = [106 144 402 420 610 793 1354 1463 1541 1638];
 % Reefs that give good matches between 12/13 and original bleaching: 951, 1001
@@ -165,6 +169,9 @@ keyReefs = unique(keyReefs);
 % too good to be true matches: keyReefs = [561 574 762 1271 1298 1299 1325 1326 1228 402];
 %keyReefs = []; % can be set empty to minimize plotting and other work for some tests
 
+%% A list of reefs for which to save data at maximum resolution for detailed
+%  analysis or plotting.
+dataReefs = [366];
 
 %% Use of parallel processing on the local machine.
 % no argument: uses the existing parallel pool if any.
@@ -519,23 +526,28 @@ parfor (parSet = 1:queueMax, parSwitch)
         par_HistOrigSum = par_HistOrigSum + origHist;
         par_HistOrigEvolvedSum = par_HistOrigEvolvedSum + origEvolved;
 
-        if any(keyReefs == k)  % temporary genotype diagnostic
-
+        if any(dataReefs == k) % Save detailed history
+            matName = strcat('DetailedSC_Reef', num2str(k), '_', modelChoices, '.mat');
+            saveAsMat(matName, C, S, time, temp);
+        end
+        if doPlots && (doGrowthRateFigure || doGenotypeFigure) && any(keyReefs == k)  % temporary genotype diagnostic
             suff = '';
             if superMode && superMode ~= 5
                 suff = sprintf('_%s_E%d_SymStrategy%d_Reef%d', RCP, E, superMode, k);
             elseif superMode == 0 || superMode == 5
                 suff = sprintf('_%s_E%d_SymStrategy%dAdv%0.2fC_Reef%d', RCP, E, superMode, superAdvantage, k);
             end
-            %{
-            genotypeFigure(fullMapDir, suff, k, time, gi, suppressSI);
-            %}
-            % Growth rate vs. T as well
-            % TODO: dies when suppressSI = 0
-            if strcmp(RCP(1:3), 'rcp')
-                growthRateFigure(fullMapDir, suff, datestr(time(suppressSI), 'yyyy'), ...
-                    k, temp, fullYearRange, gi, vgi, suppressSI, ...
-                    coralSymConstants, SelVx, RCP);         
+            if doGenotypeFigure
+                genotypeFigure(fullMapDir, suff, k, time, gi, suppressSI); %#ok<UNRCH>
+            end
+            if doGrowthRateFigure
+                % Growth rate vs. T as well
+                % TODO: dies when suppressSI = 0
+                if strcmp(RCP(1:3), 'rcp') %#ok<UNRCH>
+                    growthRateFigure(fullMapDir, suff, datestr(time(suppressSI), 'yyyy'), ...
+                        k, temp, fullYearRange, gi, vgi, suppressSI, ...
+                        coralSymConstants, SelVx, RCP);         
+                end
             end
         end
 
@@ -551,8 +563,7 @@ parfor (parSet = 1:queueMax, parSwitch)
         [ C_monthly, S_monthly, ~, bleachEventOneReef, bleachStateOne, mortStateOne ] = ...
             Clean_Bleach_Stats(C, S, C_seed, S_seed, dt, TIME, bleachParams, coralSymConstants);
      
-        plotFlag = doPlots && (allPDFs || any(keyReefs == k));     % may only be plotting keyReefs
-        if plotFlag
+        if doPlots && (any(keyReefs == k) || allPDFs)
             % Now that we have new stats, reproduce the per-reef plots.
             Plot_One_Reef(C_monthly, S_monthly, bleachEventOneReef, psw2, time, temp, lat, lon, RCP, ...
                   hist, Data, SGPath, outputPath, k, ...
@@ -724,57 +735,18 @@ if ~skipPostProcessing
             'E','OA','pdfDirectory','dataset', ...
             'Reefs_latlon','everyx','NF','RCP','reefsThisRun');
 
-        % Get the year range for last year maps first.  It could be done
-        % inside, but at one point another function used this same value.
-        if ~any(lastYearAlive)
-            yearRange = [1960 2100];
-        else
-            yearRange = [min(lastYearAlive) max(lastYearAlive)];
-            % Plotting chokes if the values are equal.
-            if yearRange(1) == yearRange(2)
-                yearRange(2) = yearRange(2) + 1;
-            end
-            % Also round out to a multiple of 10
-            if mod(yearRange(1), 10)
-                yearRange(1) = 10*floor(yearRange(1)/10);
-            end
-            if mod(yearRange(2), 10)
-                yearRange(2) = 10*ceil(yearRange(2)/10);
-            end
-        end
-
-
-        if doMaps
+        if doCoralCoverMaps
             MapsCoralCoverClean(fullMapDir, Reefs_latlon, toDo, lastYearAlive, ...
                 events85_2010, eventsAllYears, frequentBleaching, ...
                 mortState, bleachState, ...
-                yearRange, fullYearRange, ...
+                fullYearRange, ...
                 modelChoices, filePrefix); %#ok<UNRCH>
         end
 
-        % New dominance graph
-        % Get stats based on C_yearly - try getting quantiles per row.
-        % C_yearly has year/reef/coral type
-        % C_quant will have year/quantiles/coraltype
-        C_quant = quantile(C_yearly, [0.1 0.25 0.5 0.75 0.9], 2);
-        C_quant(:, :, 1) =  100 * C_quant(:, :, 1) / coralSymConstants.KCm;
-        C_quant(:, :, 2) =  100 * C_quant(:, :, 2) / coralSymConstants.KCb;
-        % Create vertexes around area to shade, running left to right and
-        % the right to left.
-        % 5% and 95%
-        span = (startYear:startYear+years-1)';
-
-        if superMode && superMode ~= 5
-            suffix = sprintf('_%s_E%dOA%d_SymStrategy%d', RCP, E, OA, superMode);
-        elseif superMode == 0 || superMode == 5
-            suffix = sprintf('_%s_E%dOA%d_SymStrategy%dAdv%0.2fC', RCP, E, OA, superMode, superAdvantage);
+        if doCoralCoverFigure
+            coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E, OA, superMode, ...
+                    superAdvantage, fullMapDir) %#ok<UNRCH>
         end
-        coralCoverFigure(fullMapDir, suffix, [span;flipud(span)], ...           % x values for areas
-            [C_quant(:,1,1);flipud(C_quant(:,5,1))], ...    % wide quantiles, massive
-            [C_quant(:,1,2);flipud(C_quant(:,5,2))], ...    % wide quantiles, branching
-            [C_quant(:,2,1);flipud(C_quant(:,4,1))], ...    % narrow quantiles, massive
-            [C_quant(:,2,2);flipud(C_quant(:,4,2))], ...    % narrow quantiles, branching
-            span, squeeze(C_quant(:, 3, 1:2)));             % values for lines
     end
     % Note that percentMortality is not used in normal runs, but it is
     % examined by the optimizer when it is used.
@@ -821,7 +793,7 @@ if ~skipPostProcessing
     end
 
     logTwo('Bleaching by event = %6.4f\n', Bleaching_85_10_By_Event);
-end
+end % End postprocessing block.
 
 elapsed = toc(timerStart);
 logTwo('Finished in %7.1f seconds.\n', elapsed);
@@ -837,58 +809,9 @@ fclose('all'); % Just the file used by logTwo, normally.
 % is open in Excel.  Writing is block, so user is prompted to skip the
 % write or close Excel and retry.  This probably applies to any application
 % using the file, not just Excel.
-if ~exist('optimizerMode', 'var') || optimizerMode == false
-    filename = strcat(basePath, 'RunSummaries.xlsx');
-    sheet = 'Run Info';
-    oldLines = 0;
-    saveToExcel = 1;
-    if exist(filename, 'file')
-        [~, txt, ~] = xlsread(filename, sheet, 'A:A');
-        oldLines = length(txt);
-        unsure = 1;
-        while unsure
-            fid=fopen(filename,'a');
-            if fid < 0
-                % Construct a questdlg with three options
-                choice = questdlg('RunSummaries.xlsx may be open in Excel.  Close it and try again to save results from this run.', ...
-                    'File Open Conflict', ...
-                    'Skip saving','Try again','Try again');
-                % Handle response
-                switch choice
-                    case 'Skip saving'
-                        disp([choice ' not saving.'])
-                        unsure = 0;
-                        saveToExcel = 0;
-                    case 'Try again'
-                        disp([choice ' re-checking file.'])
-                end
-            else
-                fclose(fid);
-                unsure = 0;
-            end
-        end
-    end
-    if saveToExcel && ~skipPostProcessing
-        mat = {datestr(now), RCP, E, everyx, queueMax, elapsed, ...
-                Bleaching_85_10_By_Event, ...
-                bleachParams.sBleach(1), bleachParams.cBleach(1), ...
-                bleachParams.sRecoverySeedMult(1), bleachParams.cRecoverySeedMult(1), ...
-                bleachParams.cSeedThresholdMult(1), ...
-                pswInputs(1), pswInputs(2), pswInputs(3), pswInputs(4)
-            };
-        if ~oldLines
-            matHeader = ...
-            {'Date', 'RCP', 'E', 'everyx', 'workers', 'run time', ...
-                '85-2010 bleaching', ...
-                'sBleach 1', 'cBleach 1', ...
-                'sRecSeedMult 1', 'cRecSeedMult 1', ...
-                'cSeedThreshMult 1', ...
-                'pMin', 'pMax', 'exponent', 'divisor'
-                };
-            mat = [matHeader; mat];
-        end
-        range = strcat('A', num2str(oldLines+1));
-        xlswrite(filename, mat, sheet, range);
-    end
+if ~exist('optimizerMode', 'var') || optimizerMode == false && ...
+    (saveToExcel && ~skipPostProcessing)
 
+    saveExcelHistory(basePath, now, RCP, E, everyx, queueMax, elapsed, ...
+        Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end
