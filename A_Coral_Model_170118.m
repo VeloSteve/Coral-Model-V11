@@ -504,7 +504,7 @@ for parSet = 1:queueMax
                 tic
                 [SPD, CPD, tPD] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
                     temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
-                    superSeedFraction, oneShot, coralSymConstants); 
+                    superSeedFraction, oneShot, coralSymConstants, dt); 
                 toc
         end
         % timeIteration is called here, with the version determined by
@@ -513,7 +513,8 @@ for parSet = 1:queueMax
         [S, C, ri, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
                     ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
-        toc        
+        toc   
+return;        
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
         % symbionts just before the supersymbionts are introduced.

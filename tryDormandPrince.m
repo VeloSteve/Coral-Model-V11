@@ -1,7 +1,7 @@
 %#codegen
 function [S, C, tOut, ri, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C0, tMonths, ...
         temp, OA, omegaFactor, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSuperIndex, ...
-        superSeedFraction, oneShot, con)
+        superSeedFraction, oneShot, con, dt)
     
     origEvolved = 0.0;
         
@@ -14,25 +14,33 @@ function [S, C, tOut, ri, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C
     % ri is just zeros, and should be computed from vgi , gi, temp, and
     % constants.
 
-        % Set up variables for using ode45.
-        ri0 = zeros(1, con.Sn*con.Cn); % A byproduct of the calculation, but not an actual ODE of its own.
-        inVar = [S0 C0 ri0 vgi(1, :) gi(1, :)]';
-        % Time is in months in the equations, so the tspan input should be
-        % in those units.
-        % Output is a single column of time and multiple columns of
-        % matching computed values.
-        [tOut, yOut] = ode45(@(t, y) ...
-            odeFunction(t, y, tMonths, temp, SelVx, C_seed, S_seed, OA, omegaFactor', con, MutVx), ...
-            [0 months], inVar);
-        
-        cols = con.Sn*con.Cn;
+    % Set up variables for using ode45.
+   
+    % Returned variables gi and vgi are used in outside diagnostics, but
+    % not in the calculation.
+    [ri, gi, vgi, gVec] = nonODEIterativeInputs(length(tMonths)-1, dt, ...
+        temp, omegaFactor', vgi(1, :), gi(1, :), MutVx, SelVx, con);
+       
+    
+    inVar = [S0 C0]';
+    % Time is in months in the equations, so the tspan input should be
+    % in those units.
+    % Output is a single column of time and multiple columns of
+    % matching computed values.
+    [tOut, yOut] = ode45(@(t, y) ...
+        odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
+        [0 months], inVar);
 
-        S = yOut(:, 1:cols);
-        C = yOut(:, cols+1:cols*2);
+    cols = con.Sn*con.Cn;
 
-        % XXX
-        %    PROBLEM: super symbionts can't be introduced here - must be
-        %    done in ode45 as a step function!
-        % XXX
+    S = yOut(:, 1:cols);
+    C = yOut(:, cols+1:cols*2);
+
+    % XXX
+    %    PROBLEM: super symbionts can't be introduced here - must be
+    %    done in ode45 as a step function!
+    %    OR: run ode45 from tStart to tIntroduction, add symbionts,
+    %    then restart and run to end!
+    % XXX
 
 end

@@ -13,7 +13,7 @@
 % function.  tMonths is a zero-based array of months for finding values in
 % any required array.
 function [dydt] = odeFunction(t, startVals, tMonths, ...
-                            temp, SelVx, C_seed, S_seed, OA, omegaFactor, con, MutVx)
+                            temp, C_seed, S_seed, con, ri, gVec)
                        
     Sn    = con.Sn;
     Cn    = con.Cn;
@@ -26,14 +26,10 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     um    = con.um;
     a     = con.a;
     b     = con.b;
-    EnvVx = con.EnvVx;
     %%
     cols = Sn*Cn;
     Sold = startVals(1:cols)';
     Cold = startVals(cols+1:cols*2)';
-    ri0 = startVals(cols*2+1:cols*3)'; % not used, but here so its place in the inputs is not forgotten.
-    vgi0 = startVals(cols*3+1:cols*4)';
-    gi0 = startVals(cols*4+1:end)'; 
 
     assert(length(Sold) == Sn*Cn, 'There should be one symbiont entry for each coral type * each symbiont type.');
     assert(length(Cold) == Sn*Cn, 'There should be one coral entry for each coral type * each symbiont type.');
@@ -56,17 +52,14 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     
     % Start getting interpolated values not needed in the original RK
     % approach.
-    T = interp1(tMonths, temp, t);
-    rm  = a*exp(b*T);
-    oFactor = interp1(tMonths, omegaFactor, t);
-    G = [con.Gm con.Gb] * oFactor;
-    
-    ri = (1- (vgi0 + EnvVx + (min(0, gi0 - T)).^2) ./ (2*SelVx)) .* exp(b*min(0, T - gi0)) * rm;
+    T = interp1q(tMonths, temp, t);
+    rm  = a*exp(b*T);  % Faster than interpolating already-made values!
+    %rm = interp1q(tMonths, rmVec, t);
+    G = interp1q(tMonths, gVec, t);
+    riNow = interp1q(tMonths, ri, t);
 
-
-    
     % Baskett 2009 equations 4 and 5.  k1 indicates the derivative at t sub i
-    dSdT = Sold ./ (KSx .* Cold) .* (ri .* KSx .* Cold - rm .* SAx ) ;  %Change in symbiont pops %OK
+    dSdT = Sold ./ (KSx .* Cold) .* (riNow .* KSx .* Cold - rm .* SAx ) ;  %Change in symbiont pops %OK
     dCdT = (C2 .* (G .* SA./ (KS .* C2).* (KC-A .* C1-C2)./KC - Mu ./(1+um .* SA./(KS .* C2))) ); %Change in coral pops %OK
     
     % We can't set a seed value rigidly, but we can refuse to drop if below
@@ -74,13 +67,6 @@ function [dydt] = odeFunction(t, startVals, tMonths, ...
     dSdT = dSdT .* max(0, sign(Sold-S_seed)); % max part is one when above seed, zero otherwise
     dCdT = repmat(dCdT, 1, Sn) .* max(0, sign(Cold-repmat(C_seed, 1, Sn))); % max part is one when above seed, zero otherwise
     
-    
-    dgi  = ((vgi0 .* (T - gi0) ) ./ SelVx) * rm; % Change in Symbiont Mean Genotype
-    dvgi = MutVx - (vgi0) .^2 ./ SelVx * rm ; % Change in Symbiont Mean Variance
-
-    dridt = ri - ri0;
-    dvgidt = dvgi;
-    dgidt = dgi;
-    dydt = [dSdT dCdT dridt dvgidt dgidt]';
+    dydt = [dSdT dCdT]';
 
 end
