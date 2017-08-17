@@ -18,7 +18,7 @@ Computer = 0; % 1=office; 2=laptop; 3=Steve; 4=Steve laptop; 0 = autodetect
     = useComputer(Computer);
 
 %% Clear variables which I want to examine between runs, but not carry over.
-clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor;
+clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yearly;
 
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
@@ -27,8 +27,9 @@ E = 1;  % EVOLUTION ON (1) or OFF (0)?
 OA = 1; % Ocean Acidification ON (1) or OFF (0)?
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
+doDormandPrince = true; % Use Prince-Dormand solver AND ours (for now)
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 10000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.  Also,
                     % if everyx >= 10000, only do reefs specifed in
@@ -140,7 +141,8 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 % 103 [
 %
 % Lee Stocking Island, for comparison to Fitt et al. 2000.
-keyReefs = [366 144];
+% cell 366, 
+keyReefs = [366];
 %
 %keyReefs = [106 144 402 420 610 793 1354 1463 1541 1638];
 % Reefs that give good matches between 12/13 and original bleaching: 951, 1001
@@ -172,7 +174,7 @@ keyReefs = unique(keyReefs);
 
 %% A list of reefs for which to save data at maximum resolution for detailed
 %  analysis or plotting.
-dataReefs = [366];
+dataReefs = [];
 
 %% Use of parallel processing on the local machine.
 % no argument: uses the existing parallel pool if any.
@@ -422,8 +424,8 @@ end
 %% RUN EVOLUTIONARY MODEL
 iteratorHandle = selectIteratorFunction(length(time), Computer);
 % the last argument in the parfor specifies the maximum number of workers.
-parfor (parSet = 1:queueMax, parSwitch)
-%for parSet = 1:queueMax
+%parfor (parSet = 1:queueMax, parSwitch)
+for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -492,11 +494,26 @@ parfor (parSet = 1:queueMax, parSwitch)
 
         %fprintf('super will start at index %d\n', suppressSI);
         %% MAIN LOOP: Integrate Equations 1-5 through 2100 using Runge-Kutta method
+        
+        % First run the built-in Prince-Dormand solver.  For now, compare
+        % and discard the results so the existing results are not affected.
+        if doDormandPrince
+                % Compute outside the loop once this is working, but for
+                % now make a time array in month units each time.
+                tMonths = linspace(0, months, timeSteps+1)';
+                tic
+                [SPD, CPD, tPD] = tryDormandPrince(months, S(1,:) , C(1,:), tMonths, ...
+                    temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
+                    superSeedFraction, oneShot, coralSymConstants); 
+                toc
+        end
         % timeIteration is called here, with the version determined by
         % iteratorHandle.
+        tic
         [S, C, ri, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
                     ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
+        toc        
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
         % symbionts just before the supersymbionts are introduced.
@@ -764,4 +781,4 @@ if ~exist('optimizerMode', 'var') || optimizerMode == false && ...
 end
 %% Cleanup
 fclose('all'); % Just the file used by logTwo, normally.
-clearvars SST Omega_factor C_yearly
+clearvars SST Omega_factor

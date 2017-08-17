@@ -9,6 +9,9 @@ function handle =  selectIteratorFunction(select, Computer)
     % Comments show the original case the code was compiled for, but any
     % case with the same array sizes is a match.
     
+    %  XXX
+    select = 0;
+    
     sourceFile1 = dir('timeIteration.m');
     sourceDate1 = sourceFile1.datenum;
     sourceFile2 = dir('Runge_Kutta_2_min0_160914.m');
@@ -37,6 +40,7 @@ function handle =  selectIteratorFunction(select, Computer)
             mexName = 'timeIteration_45080_mex';
         otherwise
             % No MEX file for this case, run the slow way.
+            disp('Running with uncompiled iterator function.');
             handle = @timeIteration;
             mexName = '';
     end
