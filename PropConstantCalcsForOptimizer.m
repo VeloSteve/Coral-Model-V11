@@ -5,7 +5,7 @@
 % modified by Cheryl Logan (clogan@csumb.edu)                       %
 % last updated: 8/26/16                                              %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[basePath, outputPath, sstPath, matPath, Computer] = useComputer(3);
+[basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] = useComputer(3);
 
 
 % SST DATASET?
@@ -20,7 +20,7 @@ end
 %% DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
 %for i={'rcp26','rcp85'}  
 %RCP = char(i)
-RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85'
+% RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85'
 format shortg; c = clock; date = strcat(num2str(c(1)),num2str(c(2)),num2str(c(3))); % today's date stamp
 
 %% LOAD JOHN'S NORMALIZED SSTS FROM EARTH SYSTEM CLIMATE MODEL OR HADISST
@@ -35,33 +35,30 @@ SSThist = SST_1861_2000;
 
 %% Store optimizer inputs from propInputValues with any constant values to be computed.
 pswInputs(:,1) = propInputValues';
-pswInputs(:,2) = [0.35; 2.0; 0.5; 2.517];
-pswInputs(:,3) = [0.35; 2.0; 0.5; 3.104];
-pswInputs(:,4) = [0.35; 2.0; 0.5; 2.390];
-pswInputs(:,5) = [0.35; 2.0; 0.5; 3.063];
-% Newer sets with case 5 constants and target 2% bleaching
-pswInputs(:,6) = [0.35; 1.8; 0.5; 2.9925];  % RCP 2.6, E=0
-pswInputs(:,7) = [0.35; 1.8; 0.5; 3.1475];  % RCP 8.5, E=0
-pswInputs(:,8) = [0.35; 1.8; 0.5; 3.7800];  % RCP 2.6, E=1
-pswInputs(:,9) = [0.35; 1.8; 0.5; 3.8000];  % RCP 8.5, E=1
-% 1/25/2017 sets with case 5 constants and target 5% bleaching
-pswInputs(:,10) = [0.35; 1.5; 0.26; 2.0833];  % RCP 2.6, E=0
-pswInputs(:,11) = [0.35; 1.5; 0.26; 2.1111];  % RCP 8.5, E=0
-pswInputs(:,12) = [0.35; 1.5; 0.46; 4.4500];  % RCP 2.6, E=1
-pswInputs(:,13) = [0.35; 1.5; 0.46; 4.4667];  % RCP 8.5, E=1
-% 1/26/2017 sets with case 5 constants and target 10% bleaching
-% For 10% it seems impossible to keep any of the input values constant.
-pswInputs(:,14) = [0.3667; 1.3; 0.375; 4.0000];  % RCP 2.6, E=0
-pswInputs(:,15) = [0.4222; 1.2222; 0.4556; 5.1111];  % RCP 8.5, E=0
-pswInputs(:,16) = [0.3556; 1.3; 0.3417; 12.2223];  % RCP 2.6, E=1
-pswInputs(:,17) = [0.6; 1.3; 0.3777; 4.5556];  % RCP 8.5, E=1
 
-% 1/27/2017 alternate values for E=1 at 10% bleaching.  This produces
-% less T-shaped variance parameter distributions than those just above, 
-% and better parameter matches to Baskett 2009, but not more exact matches
-% to the 10.0% bleaching target.
-pswInputs(:,18) = [0.36; 1.2000; 0.4167; 5.0000];  % RCP 2.6, E=1
-pswInputs(:,19) = [0.36; 1.2222; 0.4778; 6.3333];  % RCP 8.5, E=1
+% New on 8/18/2017, target 10% with first 3 parameters fixed to the same
+% values as the 5% cases numbered 20 to 27.
+%  === For 10% target ===
+pswInputs(:,2) = [0.36; 1.5; 0.46; 5.6889];  % RCP 2.6, E=0
+pswInputs(:,3) = [0.36; 1.5; 0.46; 6.2593];  % RCP 2.6, E=1
+pswInputs(:,4) = [0.36; 1.5; 0.46; 5.7445];  % RCP 4.5, E=0
+pswInputs(:,5) = [0.36; 1.5; 0.46; 6.3333];  % RCP 4.5, E=1
+pswInputs(:,6) = [0.36; 1.5; 0.46; 5.6778];  % RCP 6.0, E=0
+pswInputs(:,7) = [0.36; 1.5; 0.46; 6.2666];  % RCP 6.0, E=1
+pswInputs(:,8) = [0.36; 1.5; 0.46; 5.6667];  % RCP 8.5, E=0
+pswInputs(:,9) = [0.36; 1.5; 0.46; 6.2222];  % RCP 8.5, E=1
+
+% Also new on 8/18/2017, as for 10%
+%  === For 3% target ===
+pswInputs(:,10) = [0.36; 1.5; 0.46; 2.6290];  % RCP 2.6, E=0
+pswInputs(:,11) = [0.36; 1.5; 0.46; 3.6556];  % RCP 2.6, E=1
+pswInputs(:,12) = [0.36; 1.5; 0.46; 2.9056];  % RCP 4.5, E=0
+pswInputs(:,13) = [0.36; 1.5; 0.46; 3.8222];  % RCP 4.5, E=1
+pswInputs(:,14) = [0.36; 1.5; 0.46; 2.7555];  % RCP 6.0, E=0
+pswInputs(:,15) = [0.36; 1.5; 0.46; 3.6917];  % RCP 6.0, E=1
+pswInputs(:,16) = [0.36; 1.5; 0.46; 2.8667];  % RCP 8.5, E=0
+pswInputs(:,17) = [0.36; 1.5; 0.46; 3.7556];  % RCP 8.5, E=1
+
 % 2/4/2017 sets with case 5 constants and target 5% bleaching
 % This has the fix to make ri variable in Runge-Kutta.
 pswInputs(:,20) = [0.36; 1.5; 0.46; 4.1850];  % RCP 2.6, E=0

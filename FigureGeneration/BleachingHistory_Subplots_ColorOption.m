@@ -1,7 +1,9 @@
 function BHSCO()
 %relPath = '../bleaching_history/';
-relPath = 'D:/CoralTest/V11Test_SC/bleaching/';
+%relPath = 'D:/CoralTest/V11Test_SC/bleaching/';
 relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching\';
+
+topNote = '5% Bleaching Target for 1985-2010';
 
 figure('color', 'w');
 set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 17, 11]);
@@ -58,6 +60,21 @@ for i = 1:4
         set(yHandle, 'Position', [1925 -10 0])
     end
 
+end
+
+% Add a text box at top center if text is provided.
+if ~isempty(topNote)
+    ann = annotation(gcf,'textbox',...
+        [0.5 0.5 0.2 0.08],...
+        'String',topNote,...
+        'FontSize',20,...
+        'FitBoxToText','on');
+    loc = ann.Position;
+    % Shift to top center
+    newLoc = loc;
+    newLoc(1) = 0.47 - loc(3)/2;  % 0.47 roughly centers - could calculate from subplot locations.
+    newLoc(2) = 0.98 - loc(4);
+    ann.Position = newLoc;
 end
 end
 

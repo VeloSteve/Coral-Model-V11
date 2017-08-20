@@ -22,25 +22,27 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
-RCP = 'rcp45'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
-E = 1;  % EVOLUTION ON (1) or OFF (0)?
-OA = 1; % Ocean Acidification ON (1) or OFF (0)?
+RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
+E = 0;  % EVOLUTION ON (1) or OFF (0)?
+OA = 0; % Ocean Acidification ON (1) or OFF (0)?
+bleachingTarget = 3;  % Target used to optimize psw2 values
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
-doDormandPrince = true; % Use Prince-Dormand solver AND ours (for now)
+doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 10000; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.  Also,
                     % if everyx >= 10000, only do reefs specifed in
                     % keyReefs
 allPDFs = false;                % if false, just prints for keyReefs.
-doPlots = true;                 % For optimization runs, turn off all plotting regardless
+doPlots = false;                 % For optimization runs, turn off all plotting regardless
                                 % of the individual flags below.
 doCoralCoverMaps = false;        % World maps of cover, survival, etc. 
-doCoralCoverFigure = true;     % Plot cover vs. time
+doCoralCoverFigure = false;     % Plot cover vs. time
 doGenotypeFigure = false;
 doGrowthRateFigure = false;
+doDetailedStressStats = true;
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
@@ -142,7 +144,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %
 % Lee Stocking Island, for comparison to Fitt et al. 2000.
 % cell 366, 
-keyReefs = [366];
+keyReefs = [];
 %
 %keyReefs = [106 144 402 420 610 793 1354 1463 1541 1638];
 % Reefs that give good matches between 12/13 and original bleaching: 951, 1001
@@ -203,6 +205,8 @@ end
 fprintf('Starting (after parallel setup) at %s\n', datestr(now));
 
 %% Less frequently changed model parameters
+% 0.125 is our default
+% XXX testing:
 dt = 0.125;  % The fraction of a month for R-K time steps
 
 % SST DATASET?
@@ -318,7 +322,7 @@ load (strcat(matPath, 'Optimize_psw2.mat'),'psw2_new', 'pswInputs')
 if exist('optimizerMode', 'var')
     propTest = 1;
 else
-    propTest = getPropTest(E, RCP);
+    propTest = getPropTest(E, RCP, bleachingTarget);
 end
 pswInputs = pswInputs(:, propTest);
 
@@ -424,8 +428,8 @@ end
 %% RUN EVOLUTIONARY MODEL
 iteratorHandle = selectIteratorFunction(length(time), Computer);
 % the last argument in the parfor specifies the maximum number of workers.
-%parfor (parSet = 1:queueMax, parSwitch)
-for parSet = 1:queueMax
+parfor (parSet = 1:queueMax, parSwitch)
+%for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
@@ -509,12 +513,11 @@ for parSet = 1:queueMax
         end
         % timeIteration is called here, with the version determined by
         % iteratorHandle.
-        tic
+
         [S, C, ri, gi, vgi, origEvolved] = iteratorHandle(timeSteps, S, C, dt, ...
                     ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
-        toc   
-return;        
+
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
         % symbionts just before the supersymbionts are introduced.
@@ -742,10 +745,11 @@ if ~skipPostProcessing
     end
     % Note that percentMortality is not used in normal runs, but it is
     % examined by the optimizer when it is used.
+    oMode = exist('optimizerMode', 'var') && optimizerMode;  % must exist for function call.
     [percentBleached, percentMortality] = ...
         Stats_Tables(bleachState, mortState, lastYearAlive, ...
         lastBleachEvent, frequentBleaching, toDo, Reefs_latlon, outputPath, startYear, RCP, E, OA, ...
-        bleachParams);
+        bleachParams, doDetailedStressStats, oMode);
 
     % Get the years when reefs first experienced lasting mortality and 
     % bleaching.  This isn't wanted in every run, and certainly not when 
@@ -774,8 +778,8 @@ logTwo('Finished at %s\n', datestr(now));
 % is open in Excel.  Writing is block, so user is prompted to skip the
 % write or close Excel and retry.  This probably applies to any application
 % using the file, not just Excel.
-if ~exist('optimizerMode', 'var') || optimizerMode == false && ...
-    (saveToExcel && ~skipPostProcessing)
+if (~exist('optimizerMode', 'var') || optimizerMode == false) && ...
+    (~skipPostProcessing)
 
     saveExcelHistory(basePath, now, RCP, E, everyx, queueMax, elapsed, ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);

@@ -13,8 +13,8 @@ function [ri, gi, vgi, gVec] = nonODEIterativeInputs(timeSteps, dt, ...
    
     rmVec = con.a*exp(con.b*temp);
     % Allocate memory
-    gi(23040, 4) = 0;
-    vgi(23040, 4) = 0;
+    gi(length(temp), 4) = 0;
+    vgi(length(temp), 4) = 0;
     % Initialize
     gi(1, :) = gi0;
     vgi(1, :) = vgi0;

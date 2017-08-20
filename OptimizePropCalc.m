@@ -1,6 +1,13 @@
 %% Try to find an optimal equation for the proportionality constant by varying
 % 4 input variables and trying to maximize a "goodness" score based on reef
 % survival and other factors.
+%
+% Possible optimization: after checking all equal bests the final random
+% search is around an arbitrary one of those (first or last).  It could be
+% better to select the median value of the indexes of equal bests to be
+% closest to the center of the apparent optimum.  It also means a quicker
+% exit if there are a lot of equal bests and all many the center have been
+% checked.
 %%
 optTimerStart = tic;
 
@@ -11,13 +18,15 @@ optimizerMode = true;  % existence of this variable tells the solver we're optim
 keepOldResults = false;  % Use results across multiple runs - only valid if model parameters and step sizes don't change.
 checkEquals = true;  % When more than one "equal best" is found, check all neighbors.
 % Discrete steps for each parameter.  Set to one for constants.
-maxSteps = 13; % 7, 13, 19 are useful multiples
-boxStart = false;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
-maxRuns = 1;  % Stop after this many runs, if no other stopping condition is reached.
+maxSteps = 7; % 7, 13, 19 are useful multiples
+boxStart = true;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
+maxRuns = 300;  % Stop after this many runs, if no other stopping condition is reached.
 randomStart = 0;  % Number of random looks before starting an organized search.
 maxRandomEnd = 26; % Points to check around a possible final point, in case there is a better value on a diagonal. Bug: must be at least 1.
 useHoldDirection = true; % Keep going the same way when when a linear search finds a new best.
 equalBestTol = 0.05; %.05;  % If a new value is this close, treat it as an equal best for checking.  Nonzero values could be wasteful, though.
+
+RCP = 'rcp85'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 
 %% NOTE
 % to continue building the plottable result array after a MATLAB restart:
@@ -54,9 +63,9 @@ pswOnly = true; % limit variable modification to the 4 used for psw2 (2-5)
 option{1} = {'bleachFrac', 0.22, 0.225};
 
 option{2} = {'pMin', 0.36, 0.36};
-option{3} = {'pMax', 1.2583, 1.2583};
-option{4} = {'exponent', 0.4358, 0.4358}; 
-option{5} = {'div', 5.0833, 5.0833};
+option{3} = {'pMax', 1.7, 1.9};
+option{4} = {'exponent', 0.4, 0.5}; 
+option{5} = {'div', 2.4, 3.5 };
 
 option{6} = {'sRecov', 0.5 0.6};
 option{7} = {'cRecov', 0.7 0.8};
@@ -295,7 +304,9 @@ while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
         end
         % Always active
         propInputValues = [option{2}{5}, option{3}{5}, option{4}{5}, option{5}{5}];
+        thisRCP = RCP;
         PropConstantCalcsForOptimizer
+        assert(strcmp(thisRCP, RCP), 'RCP set for prop calculations %s must not be overwritten by PCCFO setting %s!', thisRCP, RCP);
 
         multiPlot.active = false;
         try
@@ -309,6 +320,7 @@ while runs < maxRuns && skips <= maxSkips && randomEnd < maxRandomEnd
                 rethrow(ME)
             end
         end
+        assert(strcmp(thisRCP, RCP), 'RCP set for prop calculations %s must match model setting %s!', thisRCP, RCP);
         %  Original version, using mostly older parameters:
         %[goodness, pg1950, bleach] = goodnessValue(targetBleaching, psw2_new, percentGone, Mort_stats, C_seed, mEvents, reefsThisRun, AvgMortFreq_85_10_SD);
         % Use latest bleaching and mortality values

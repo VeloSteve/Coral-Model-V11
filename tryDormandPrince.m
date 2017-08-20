@@ -27,9 +27,11 @@ function [S, C, tOut, ri, gi, vgi, origEvolved] = tryDormandPrince(months, S0, C
     % in those units.
     % Output is a single column of time and multiple columns of
     % matching computed values.
+    opts = odeset('RelTol',1e-5);  % 1e-3 is the default.
+
     [tOut, yOut] = ode45(@(t, y) ...
         odeFunction(t, y, tMonths, temp, C_seed, S_seed, con, ri, gVec), ...
-        [0 months], inVar);
+        [0 months], inVar, opts);
 
     cols = con.Sn*con.Cn;
 

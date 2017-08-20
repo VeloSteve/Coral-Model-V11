@@ -18,8 +18,8 @@
 %   
 function [permBleached, percentMortality] = ...
         Stats_Tables(bleachState, mortState, lastYearAlive, ...
-        lastBleachEvent, frequentBleaching, thisRun, allLatLon, outputPath, startYear, RCP, E, OA, ...
-        bleachParams)
+        lastBleachEvent, frequentBleaching, thisRun, allLatLon, outputPath, ...
+        startYear, RCP, E, OA, bleachParams, detailStats, optimizerMode)
     % Subset all of the input arrays which list all reefs to just those
     % which are active in this run.  We don't care about reef IDs, just the
     % number and their latitude.
@@ -41,16 +41,23 @@ function [permBleached, percentMortality] = ...
     eqLim = 7;
     loLim = 15;
         
-    % Warning: the psw2 optimization code assumes that 1950 is in column 2
-    % of the output array, so it needs to be first here.
+
     % Points for graphing and estimating mortality years
-    % years = [1950 1965 1980 1990 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100];
-    % Extended version for 400 years
-    %years = [1860 1875 1880 1885 1890 1895 1900 1925 1950 1980 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100 2125 2150 2175 2200 2205 2210 2215 2220 2225 2250 2260 ];
-    % Minimal points for faster optimization runs:
-    % years = [1950 2100];
-    % Default, for a readable table.
-    years = [1950 2000 2016 2050 2075 2100];
+    if exist('optimizerMode', 'var') && optimizerMode
+        % Optimizer requires the first to be 1950. Ignore the rest.
+        years = [1950 2100];
+    elseif detailStats
+        if strcmp(RCP, 'control400')
+            years = [1860 1875 1880 1885 1890 1895 1900 1925 1950 1980 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100 2125 2150 2175 2200 2205 2210 2215 2220 2225 2250 2260 ];
+        else
+            years = [1950 1965 1980 1990 2000 2010 2016 2020 2030 2033 2040 2050 2060 2070 2075 2085 2095 2100];
+        end
+    else
+        % default, for a readable table that fits a screen or page easily.
+        years = [1950 2000 2016 2050 2075 2100];
+    end
+
+
 
     % All tables start out with the same prealocation.
     permBleached = zeros(5,length(years));
@@ -103,7 +110,7 @@ function [permBleached, percentMortality] = ...
         bleachLat = bleachState(ind, :, :);
         bleachCombo = bleachLat(:, :, 1) | bleachLat(:, :, 2);
         bleachOrMort = mortCombo | bleachCombo;
-        stressCombo = bleachOrMort | fbCombo;
+        % stressCombo = bleachOrMort | fbCombo;
         
         % New stressCombo approach:
         % A = massive is bleached, dead, or frequently bleached
