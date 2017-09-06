@@ -7,10 +7,10 @@ function [f] = omegaToFactor(a)
     
     % Most values are between 1 and 4, so just apply the equation to every
     % point first.  Some will be overwritten.
-    version = 1;
+    version = 3;
     switch version
         case 0
-            f = (1-(4-a)*0.15);
+            f = 1-(4-a)*0.15;
             
             % Special cases - f = 0 for omega at 1 or below and 1 for >= 4
             f(a <= 1) = 0.0;
@@ -31,7 +31,17 @@ function [f] = omegaToFactor(a)
             f = max(0,min(1,(a-omin)./(a-omin+ko)*(4-omin+ko)/(4-omin) ));
         case 2
             % Old format, but variable slope (base is 0.15)
-            f = (1-(4-a)*0.60);
+            f = (1-(4-a)*0.30);
+            f(a <= 1) = 0.0;
+            f(a >= 4) = 1.0;
+        case 3
+            % Old format, same slope, but SQUARE the result.  This may be
+            % justified by Lough & Barnes 2000, where linear extension is
+            % proportional to calcification rate.  We are working in terms
+            % of area, which is squared.
+            f = (1-(4-a)*0.15).^2;
+            
+            % Special cases - f = 0 for omega at 1 or below and 1 for >= 4
             f(a <= 1) = 0.0;
             f(a >= 4) = 1.0;
         otherwise
