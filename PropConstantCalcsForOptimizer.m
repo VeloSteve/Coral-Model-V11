@@ -61,6 +61,7 @@ pswInputs(:,17) = [0.36; 1.5; 0.46; 3.7556];  % RCP 8.5, E=1
 
 % 2/4/2017 sets with case 5 constants and target 5% bleaching
 % This has the fix to make ri variable in Runge-Kutta.
+% === For 5% target ===
 pswInputs(:,20) = [0.36; 1.5; 0.46; 4.1850];  % RCP 2.6, E=0
 pswInputs(:,21) = [0.36; 1.5; 0.46; 4.2550];  % RCP 8.5, E=0
 pswInputs(:,22) = [0.36; 1.5; 0.46; 4.7100];  % RCP 2.6, E=1
@@ -70,6 +71,17 @@ pswInputs(:,24) = [0.36; 1.5; 0.46; 4.3617];  % RCP 4.5, E=0
 pswInputs(:,25) = [0.36; 1.5; 0.46; 4.2077];  % RCP 6.0, E=0
 pswInputs(:,26) = [0.36; 1.5; 0.46; 4.8444];  % RCP 4.5, E=1
 pswInputs(:,27) = [0.36; 1.5; 0.46; 4.7156];  % RCP 6.0, E=1
+
+% New on 9/6/2017
+%  === For 15% target ===
+pswInputs(:,28) = [0.36; 1.5; 0.46; 6.9778];  % RCP 2.6, E=0
+pswInputs(:,29) = [0.36; 1.5; 0.46; 7.8000];  % RCP 2.6, E=1
+pswInputs(:,30) = [0.36; 1.5; 0.46; 7.1444];  % RCP 4.5, E=0
+pswInputs(:,31) = [0.36; 1.5; 0.46; 7.8889];  % RCP 4.5, E=1
+pswInputs(:,32) = [0.36; 1.5; 0.46; 7.0556];  % RCP 6.0, E=0
+pswInputs(:,33) = [0.36; 1.5; 0.46; 7.9111];  % RCP 6.0, E=1
+pswInputs(:,34) = [0.36; 1.5; 0.46; 7.1333];  % RCP 8.5, E=0
+pswInputs(:,35) = [0.36; 1.5; 0.46; 7.9000];  % RCP 8.5, E=1
 
 [~, pswCount] = size(pswInputs);
 
@@ -100,6 +112,9 @@ for reef = 1:length(Reefs_latlon)
     psw2_new(reef,4) = max(0.35,min(2.0,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.5/2.390)); % 1/17/17 rcp 2.6 E=0 optimized
     psw2_new(reef,5) = max(0.35,min(2.0,(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^0.5/3.063)); % 1/17/17 rcp 2.6 E=1 optimized
     %}
+    % Try to show the equation more readably:
+    % E = exp(0.063.*SSThistReef)
+    % max(pMin,min(pMax,(mean(E)./var(E)).^exponent/divisor))
     for j = 1:pswCount
         psw2_new(reef,j) = max(pswInputs(1, j),min(pswInputs(2, j),(mean(exp(0.063.*SSThistReef))./var(exp(0.063.*SSThistReef))).^pswInputs(3, j)/pswInputs(4, j))); % John's new eqn 7/25/16
     end
