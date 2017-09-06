@@ -106,6 +106,38 @@ function [propTest] = getPropTest(E, RCP, bleachTarget)
                         error('No RCP match for E=%d, bleaching target %d', E, bleachTarget);
                 end
             end 
+        case 15
+            if E == 0
+                switch RCP
+                    case 'rcp26'
+                        propTest = 28;
+                    case 'control400'
+                        propTest = 28;
+                    case 'rcp45'
+                        propTest = 30;
+                    case 'rcp60'
+                        propTest = 32;
+                    case 'rcp85'
+                        propTest = 34;
+                    otherwise
+                        error('No RCP match for E=%d, bleaching target %d', E, bleachTarget);
+                end
+            elseif E == 1
+                switch RCP
+                    case 'rcp26'
+                        propTest = 29;
+                    case 'control400'
+                        propTest = 29;
+                    case 'rcp45'
+                        propTest = 31;
+                    case 'rcp60'
+                        propTest = 33;
+                    case 'rcp85'
+                        propTest = 35;
+                    otherwise
+                        error('No RCP match for E=%d, bleaching target %d', E, bleachTarget);
+                end
+            end             
         otherwise
             error('No psw2 values have been defined for a bleaching target of %d.\n', bleachingTarget);
     end
