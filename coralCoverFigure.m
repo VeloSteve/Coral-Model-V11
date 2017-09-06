@@ -4,7 +4,9 @@ function coralCoverFigure(C_yearly, coralSymConstants, startYear, years, RCP, E,
     % Get stats based on C_yearly - try getting quantiles per row.
     % C_yearly has year/reef/coral type
     % C_quant will have year/quantiles/coraltype
-    C_quant = quantile(C_yearly, [0.1 0.25 0.5 0.75 0.9], 2);
+    %C_quant = quantile(C_yearly, [0.1 0.25 0.5 0.75 0.9], 2);
+    % 5% to 95% is more standard:
+    C_quant = quantile(C_yearly, [0.05 0.25 0.5 0.75 0.95], 2);
     % Normalize
     C_quant(:, :, 1) =  100 * C_quant(:, :, 1) / coralSymConstants.KCm;
     C_quant(:, :, 2) =  100 * C_quant(:, :, 2) / coralSymConstants.KCb;
