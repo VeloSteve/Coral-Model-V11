@@ -23,9 +23,9 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
 RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
-E = 0;  % EVOLUTION ON (1) or OFF (0)?
+E = 1;  % EVOLUTION ON (1) or OFF (0)?
 OA = 0; % Ocean Acidification ON (1) or OFF (0)?
-bleachingTarget = 3;  % Target used to optimize psw2 values
+bleachingTarget = 5;  % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
@@ -42,7 +42,7 @@ doCoralCoverMaps = false;        % World maps of cover, survival, etc.
 doCoralCoverFigure = false;     % Plot cover vs. time
 doGenotypeFigure = false;
 doGrowthRateFigure = false;
-doDetailedStressStats = true;
+doDetailedStressStats = false;
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
@@ -326,16 +326,27 @@ else
 end
 pswInputs = pswInputs(:, propTest);
 
-%% Constants moved outside of the loop so they are only defined once:
-C_seed = [0.1*10^7 0.01*10^7]; % mass branch
-S_seed = [0.1*10^6 0.1*10^6 0.1*10^6 0.1*10^6];  % This was a single value until 2/17/2017
-
+%% Load growth, carrying capacity and other constants:
 % Load .mat file for Coral and Symbiont genetics constants
 % As of 1/3/2017 the file contains a structure rather than individual
 % variables.
-load(strcat(matPath, 'Coral_Sym_constants_2.mat'));
+load(strcat(matPath, 'Coral_Sym_constants_3.mat'));
 assert(length(startSymFractions) == coralSymConstants.Sn, ...
     'Symbiont start fractions should match number of symbionts.');
+
+% Define the seed values below which populations are not allowed to drop.
+% original:
+% C_seed = [0.1*10^7 0.01*10^7]; % mass branch
+% 1% of K for massive and 0.1% for branching corals.
+% The values are 741,250 and 102,500 square cm of coral per 625 square m of reef.
+C_seed = [coralSymConstants.KCm*0.01 coralSymConstants.KCb*0.001];
+% original:
+% S_seed = [0.1*10^6 0.1*10^6 0.1*10^6 0.1*10^6];  % This was a single value until 2/17/2017
+% 10^-5 % of seed, based on having corals at their seed levels as well.
+% The values are 222,375 and 41,000 cells per 625 square meters of reef.
+msSeed = 10^-7 * coralSymConstants.KSm * C_seed(1);
+bsSeed = 10^-7 * coralSymConstants.KSb * C_seed(2);
+S_seed = [msSeed bsSeed msSeed bsSeed];
 
 % Mutational Variance w (E=1) and w/o Evolution (E=0)
 if E==0

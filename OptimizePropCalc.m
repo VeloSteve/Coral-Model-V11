@@ -18,7 +18,7 @@ optimizerMode = true;  % existence of this variable tells the solver we're optim
 keepOldResults = false;  % Use results across multiple runs - only valid if model parameters and step sizes don't change.
 checkEquals = true;  % When more than one "equal best" is found, check all neighbors.
 % Discrete steps for each parameter.  Set to one for constants.
-maxSteps = 7; % 7, 13, 19 are useful multiples
+maxSteps = 19; % 7, 13, 19 are useful multiples
 boxStart = true;  % Use specified starting points, often "boxing" the parameter space.  If false, include just one point in the center.
 maxRuns = 300;  % Stop after this many runs, if no other stopping condition is reached.
 randomStart = 0;  % Number of random looks before starting an organized search.
@@ -40,7 +40,7 @@ RCP = 'rcp85'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 %%
 % Target values - most values are set up to target zero or a fixed value.
 % This is variable:
-targetBleaching = 2.0;
+targetBleaching = 15.0;
 %% Possible values for constants in this equation:
 % max(0.3,min(1.3,( mean(exp(0.063.*SSThist))./var(exp(0.063.*SSThist)) ).^0.5/11
 % where the 0.063 is considered fixed and the other values are known below as
@@ -63,9 +63,9 @@ pswOnly = true; % limit variable modification to the 4 used for psw2 (2-5)
 option{1} = {'bleachFrac', 0.22, 0.225};
 
 option{2} = {'pMin', 0.36, 0.36};
-option{3} = {'pMax', 1.7, 1.9};
-option{4} = {'exponent', 0.4, 0.5}; 
-option{5} = {'div', 2.4, 3.5 };
+option{3} = {'pMax', 1.5, 1.5};
+option{4} = {'exponent', 0.46, 0.46}; 
+option{5} = {'div', 7.8389, 8.9389 };
 
 option{6} = {'sRecov', 0.5 0.6};
 option{7} = {'cRecov', 0.7 0.8};
@@ -83,7 +83,7 @@ if pswOnly
     assert(isempty(A), 'With pswOnly true, only related parameters are allowed.');
 end
 % Steps to actually use for each (1 to hold constant)
-steps = [1, maxSteps, maxSteps, maxSteps];
+steps = [1, 1, 1, maxSteps];
 
 
 % After this, each option will contain name, min, max, range, and a default
