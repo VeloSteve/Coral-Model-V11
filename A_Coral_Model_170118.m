@@ -25,7 +25,7 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
 E = 1;  % EVOLUTION ON (1) or OFF (0)?
 OA = 0; % Ocean Acidification ON (1) or OFF (0)?
-bleachingTarget = 5;  % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
+bleachingTarget = 3;  % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)

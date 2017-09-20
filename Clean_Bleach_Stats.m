@@ -118,7 +118,7 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
                     bleachFlag = false;
                     bleached(y:end, coral) = false;
                     lastBleaching(coral) = NaN;
-                    % If the coral was dead, not it's not.
+                    % If the coral was dead, now it's not.
                     if deadFlag
                         dead(y:end, coral) = false;
                         deadFlag = false;
@@ -146,8 +146,6 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
                 end
             end
             
-            
-            
             % Most of this "for" is about bleaching at potentially heathy
             % coral levels, but also check for mortality based on an extreme
             % low value of coral cover.
@@ -155,8 +153,7 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
             % to be bleached.
             % NOTE: The coral becomes bleached, be we don't record this as
             % a bleaching event even though it updates the last bleaching
-            % date.
-            
+            % date.         
             if ~deadFlag
                 if Cmin(y, coral) < seedThresh(coral)
                     % mort implies bleached.
@@ -169,9 +166,6 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
 
                 end
             end
-            
-            
-    
         end % end years
     end % end coral types
     % TODO: see if calculating sBleach*Smin into a new array and then
@@ -179,8 +173,6 @@ function [ C_monthly, S_monthly, C_yearly, bleachEvent, bleached, dead ] ...
     % storing _potential_ bleaching points.
     bleachEvent = sparse(bleachEvent);
     
-    
-
-
 end
+
 

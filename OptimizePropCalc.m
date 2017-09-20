@@ -40,7 +40,7 @@ RCP = 'rcp85'; %  MUST MATCH THE MODEL FOR CORRECT SST INPUT!
 %%
 % Target values - most values are set up to target zero or a fixed value.
 % This is variable:
-targetBleaching = 15.0;
+targetBleaching = 10.0;
 %% Possible values for constants in this equation:
 % max(0.3,min(1.3,( mean(exp(0.063.*SSThist))./var(exp(0.063.*SSThist)) ).^0.5/11
 % where the 0.063 is considered fixed and the other values are known below as
@@ -65,7 +65,7 @@ option{1} = {'bleachFrac', 0.22, 0.225};
 option{2} = {'pMin', 0.36, 0.36};
 option{3} = {'pMax', 1.5, 1.5};
 option{4} = {'exponent', 0.46, 0.46}; 
-option{5} = {'div', 7.8389, 8.9389 };
+option{5} = {'div', 7.03, 7.23 };
 
 option{6} = {'sRecov', 0.5 0.6};
 option{7} = {'cRecov', 0.7 0.8};

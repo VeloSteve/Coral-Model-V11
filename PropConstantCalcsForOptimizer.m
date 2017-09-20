@@ -36,43 +36,43 @@ SSThist = SST_1861_2000;
 %% Store optimizer inputs from propInputValues with any constant values to be computed.
 pswInputs(:,1) = propInputValues';
 
-% New on 8/18/2017, target 10% with first 3 parameters fixed to the same
+% Updated 9/20/2017, target 10% with first 3 parameters fixed to the same
 % values as the 5% cases numbered 20 to 27.
 %  === For 10% target ===
-pswInputs(:,2) = [0.36; 1.5; 0.46; 5.6889];  % RCP 2.6, E=0
-pswInputs(:,3) = [0.36; 1.5; 0.46; 6.2593];  % RCP 2.6, E=1
-pswInputs(:,4) = [0.36; 1.5; 0.46; 5.7445];  % RCP 4.5, E=0
-pswInputs(:,5) = [0.36; 1.5; 0.46; 6.3333];  % RCP 4.5, E=1
-pswInputs(:,6) = [0.36; 1.5; 0.46; 5.6778];  % RCP 6.0, E=0
-pswInputs(:,7) = [0.36; 1.5; 0.46; 6.2666];  % RCP 6.0, E=1
-pswInputs(:,8) = [0.36; 1.5; 0.46; 5.6667];  % RCP 8.5, E=0
-pswInputs(:,9) = [0.36; 1.5; 0.46; 6.2222];  % RCP 8.5, E=1
+pswInputs(:,2) = [0.36; 1.5; 0.46; 6.4367];  % RCP 2.6, E=0
+pswInputs(:,3) = [0.36; 1.5; 0.46; 7.0778];  % RCP 2.6, E=1
+pswInputs(:,4) = [0.36; 1.5; 0.46; 6.5311];  % RCP 4.5, E=0
+pswInputs(:,5) = [0.36; 1.5; 0.46; 7.1600];  % RCP 4.5, E=1
+pswInputs(:,6) = [0.36; 1.5; 0.46; 6.4978];  % RCP 6.0, E=0
+pswInputs(:,7) = [0.36; 1.5; 0.46; 7.1389];  % RCP 6.0, E=1
+pswInputs(:,8) = [0.36; 1.5; 0.46; 6.5233];  % RCP 8.5, E=0
+pswInputs(:,9) = [0.36; 1.5; 0.46; 7.1189];  % RCP 8.5, E=1
 
-% Also new on 8/18/2017, as for 10%
+% Updated 9/19/2017, as for 10%
 %  === For 3% target ===
-pswInputs(:,10) = [0.36; 1.5; 0.46; 2.6290];  % RCP 2.6, E=0
-pswInputs(:,11) = [0.36; 1.5; 0.46; 3.6556];  % RCP 2.6, E=1
-pswInputs(:,12) = [0.36; 1.5; 0.46; 2.9056];  % RCP 4.5, E=0
-pswInputs(:,13) = [0.36; 1.5; 0.46; 3.8222];  % RCP 4.5, E=1
-pswInputs(:,14) = [0.36; 1.5; 0.46; 2.7555];  % RCP 6.0, E=0
-pswInputs(:,15) = [0.36; 1.5; 0.46; 3.6917];  % RCP 6.0, E=1
-pswInputs(:,16) = [0.36; 1.5; 0.46; 2.8667];  % RCP 8.5, E=0
-pswInputs(:,17) = [0.36; 1.5; 0.46; 3.7556];  % RCP 8.5, E=1
+pswInputs(:,10) = [0.36; 1.5; 0.46; 3.7633];  % RCP 2.6, E=0
+pswInputs(:,11) = [0.36; 1.5; 0.46; 4.2711];  % RCP 2.6, E=1
+pswInputs(:,12) = [0.36; 1.5; 0.46; 3.9344];  % RCP 4.5, E=0
+pswInputs(:,13) = [0.36; 1.5; 0.46; 4.4422];  % RCP 4.5, E=1
+pswInputs(:,14) = [0.36; 1.5; 0.46; 3.8133];  % RCP 6.0, E=0
+pswInputs(:,15) = [0.36; 1.5; 0.46; 4.3533];  % RCP 6.0, E=1
+pswInputs(:,16) = [0.36; 1.5; 0.46; 3.7778];  % RCP 8.5, E=0
+pswInputs(:,17) = [0.36; 1.5; 0.46; 4.2933];  % RCP 8.5, E=1
 
-% 2/4/2017 sets with case 5 constants and target 5% bleaching
-% This has the fix to make ri variable in Runge-Kutta.
+% 9/19/2017  Adjust for new seed values divisors are larger by about 0.61
 % === For 5% target ===
-pswInputs(:,20) = [0.36; 1.5; 0.46; 4.1850];  % RCP 2.6, E=0
-pswInputs(:,21) = [0.36; 1.5; 0.46; 4.2550];  % RCP 8.5, E=0
-pswInputs(:,22) = [0.36; 1.5; 0.46; 4.7100];  % RCP 2.6, E=1
-pswInputs(:,23) = [0.36; 1.5; 0.46; 4.7156];  % RCP 8.5, E=1
+pswInputs(:,20) = [0.36; 1.5; 0.46; 4.8356];  % RCP 2.6, E=0
+pswInputs(:,21) = [0.36; 1.5; 0.46; 4.8444];  % RCP 8.5, E=0
+pswInputs(:,22) = [0.36; 1.5; 0.46; 5.2389];  % RCP 2.6, E=1
+pswInputs(:,23) = [0.36; 1.5; 0.46; 5.3222];  % RCP 8.5, E=1
 % 2/28/17 Add rcp4.5 and 6.0
-pswInputs(:,24) = [0.36; 1.5; 0.46; 4.3617];  % RCP 4.5, E=0
-pswInputs(:,25) = [0.36; 1.5; 0.46; 4.2077];  % RCP 6.0, E=0
-pswInputs(:,26) = [0.36; 1.5; 0.46; 4.8444];  % RCP 4.5, E=1
-pswInputs(:,27) = [0.36; 1.5; 0.46; 4.7156];  % RCP 6.0, E=1
+pswInputs(:,24) = [0.36; 1.5; 0.46; 4.9411];  % RCP 4.5, E=0
+pswInputs(:,25) = [0.36; 1.5; 0.46; 4.8700];  % RCP 6.0, E=0
+pswInputs(:,26) = [0.36; 1.5; 0.46; 5.4411];  % RCP 4.5, E=1
+pswInputs(:,27) = [0.36; 1.5; 0.46; 5.3756];  % RCP 6.0, E=1
 
 % New on 9/6/2017
+% XXX NOT UPDATED FOR NEW SEED - CAN'T GET THERE!
 %  === For 15% target ===
 pswInputs(:,28) = [0.36; 1.5; 0.46; 6.9778];  % RCP 2.6, E=0
 pswInputs(:,29) = [0.36; 1.5; 0.46; 7.8000];  % RCP 2.6, E=1
