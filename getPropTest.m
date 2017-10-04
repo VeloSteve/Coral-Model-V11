@@ -107,6 +107,8 @@ function [propTest] = getPropTest(E, RCP, bleachTarget)
                 end
             end 
         case 15
+            error('15% Bleaching target is unreachable under current assumptions!');
+            %{
             if E == 0
                 switch RCP
                     case 'rcp26'
@@ -137,7 +139,8 @@ function [propTest] = getPropTest(E, RCP, bleachTarget)
                     otherwise
                         error('No RCP match for E=%d, bleaching target %d', E, bleachTarget);
                 end
-            end             
+            end 
+            %}
         otherwise
             error('No psw2 values have been defined for a bleaching target of %d.\n', bleachingTarget);
     end

@@ -8,7 +8,7 @@ function [cMap] = customScale()
     % OrangeBlueLANL is direct from https://datascience.lanl.gov/data/colormaps/AsymmetricBlueOrangeDivergent-W5.xml
     % OrangeBlueLANLMod  is a guess made before the one above, and avoiding
     % white.
-    cMap = OrangeBlueLANL; %customRGMap;
+    cMap = OrangeBlueLANLMod; %customRGMap;
     %{
     % Map code posted by Stephen Cobeldick at https://www.mathworks.com/matlabcentral/fileexchange/25536-red-blue-colormap
     m = 20;
