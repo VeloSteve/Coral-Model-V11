@@ -44,8 +44,6 @@ activeLatLon(1:length(activeReefs), 2) = Reefs_latlon(activeReefs, 2);
 % A scale for "red=bad, blue=good" plots.
 customColors = customScale();
 
-
-
 tName = strcat(modelChoices,'. Year Corals No Longer Persist');
 fileBase = strcat(fullDir, filePrefix,'_LastYrCoralMap');
 % Green points everywhere
@@ -67,9 +65,15 @@ end
 
 %% Make map showing # all bleaching events bn 1985-2010
 tName = 'Bleaching Events Between 1985-2010';
-outFile = strcat(fullDir, filePrefix,'_MortEvents8510Map','.pdf');
+fileBase = strcat(fullDir, filePrefix,'_MortEvents8510Map');
+outFile = strcat(fileBase, '.pdf');
 oneMap(13, activeLatLon(:, 1), activeLatLon(:, 2), events85_2010(activeReefs), [], jet, tName, outFile, false);
-
+% Another one with postprocessing...
+if verLessThan('matlab', '8.2')
+    saveas(gcf, fileBase, 'fig');
+else
+    savefig(strcat(fileBase,'.fig'));
+end
 
 %% Figure 14 Make map showing # all bleaching events
 rangeText = sprintf('%d-%d',fullYearRange);
@@ -263,7 +267,7 @@ end  % End the main MapsCoralCover function.
 % t title
 % outFile pdf output file
 function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
-    figure(n);
+    f = figure(n);
     if add
         hold on;
     else
@@ -291,7 +295,7 @@ function [] = oneMap(n, lons, lats, values, cRange, cMap, t, outFile, add)
     title(t)
     
     if ~isempty(outFile)
-        print('-dpdf', '-r200', outFile);
+        print(f, '-dpdf', '-r200', outFile);
     end
     hold off;
 end

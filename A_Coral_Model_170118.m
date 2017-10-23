@@ -22,24 +22,24 @@ clearvars bleachEvents bleachState mortState resultSimilarity Omega_factor C_yea
 
 %% Most-used case settings
 % DEFINE CLIMATE CHANGE SCENARIO (from normalized GFDL-ESM2M; J Dunne)
-RCP = 'rcp85'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
+RCP = 'rcp45'; % options; 'rcp26', 'rcp45', 'rcp60', 'rcp85', 'control', 'control400'
 E = 1;  % EVOLUTION ON (1) or OFF (0)?
 OA = 0; % Ocean Acidification ON (1) or OFF (0)?
-bleachingTarget = 3;  % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
+bleachingTarget = 5;  % Target used to optimize psw2 values.  3, 5 and 10 are defined as of 8/29/2017
 maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 10; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.  Also,
                     % if everyx >= 10000, only do reefs specifed in
                     % keyReefs
 allPDFs = false;                % if false, just prints for keyReefs.
-doPlots = false;                 % For optimization runs, turn off all plotting regardless
+doPlots = true;                 % For optimization runs, turn off all plotting regardless
                                 % of the individual flags below.
-doCoralCoverMaps = false;        % World maps of cover, survival, etc. 
-doCoralCoverFigure = false;     % Plot cover vs. time
+doCoralCoverMaps = true;        % World maps of cover, survival, etc. 
+doCoralCoverFigure = true;     % Plot cover vs. time
 doGenotypeFigure = false;
 doGrowthRateFigure = false;
 doDetailedStressStats = false;
@@ -66,15 +66,22 @@ superStart = 2035;              % Start in this year for modes 0-2 and superAdva
 
 % If this code is called from a script, we want some of the variables above
 % to be overwritten.  Do that here before they are used in the code below.
+doProgressBar = false;  % For when the GUI isn't used.
 if exist('scriptVars', 'var')
     disp('Called by a script');
     % Only these variables are supported now, but it's easy to add more.
-    if isfield(scriptVars, 'RCP'); RCP = scriptVars.RCP; end;
-    if isfield(scriptVars, 'E'); E = scriptVars.E; end;
-    if isfield(scriptVars, 'OA'); OA = scriptVars.OA; end;
-    if isfield(scriptVars, 'superMode'); superMode = scriptVars.superMode; end;
-    if isfield(scriptVars, 'superAdvantage'); superAdvantage = scriptVars.superAdvantage; end;
+    if isfield(scriptVars, 'RCP'); RCP = scriptVars.RCP; end
+    if isfield(scriptVars, 'E'); E = scriptVars.E; end
+    if isfield(scriptVars, 'OA'); OA = scriptVars.OA; end
+    if isfield(scriptVars, 'superMode'); superMode = scriptVars.superMode; end
+    if isfield(scriptVars, 'superAdvantage'); superAdvantage = scriptVars.superAdvantage; end
     fprintf('After update in model E = %d, OA = %d, RCP = %s Mode = %d Adv = %d \n', E, OA, RCP, superMode, superAdvantage);
+    % More "script" variables from GUI:
+    if isfield(scriptVars, 'doCoralCoverFigure'); doCoralCoverFigure = scriptVars.doCoralCoverFigure; end
+    if isfield(scriptVars, 'doCoralCoverMaps'); doCoralCoverMaps = scriptVars.doCoralCoverMaps; end
+    if isfield(scriptVars, 'doProgressBar'); doProgressBar = scriptVars.doProgressBar; end
+    if isfield(scriptVars, 'everyx'); everyx = scriptVars.everyx; end
+
 end
 
 if superMode >= 3 && superMode <=5
@@ -89,7 +96,7 @@ elseif superMode >= 6
     load(fn, 'firstBleachYears');
     superStartYear = firstBleachYears;
 elseif superAdvantage == 0.0
-    % If there's not advantage it's a case where there's no addition.
+    % If there's no advantage it's a case where there's no addition.
     % Delay to the end or we'll end up "seeding" extra symbionts.
     if strcmp(RCP, 'control400')
         last = 1860+400+1;
@@ -104,7 +111,7 @@ end
 assert(length(superStartYear) == maxReefs, 'By-year symbiont starts should have a start year for every reef.');
 
 %superInitYears = [2025 2035]; % Years from which adaptation temp is selected.
-superSeedFraction = 10^-4;      % Fraction of S_seed to use for seeding super symbionts.
+superSeedFraction = 10^-3;      % Fraction of S_seed to use for seeding super symbionts.
 % sizing notes: for massive,
 % KSm = 3000000
 % seed = 100000
@@ -144,7 +151,7 @@ assert(sum(startSymFractions) == 1.0, 'Start fractions should sum to 1.');
 %
 % Lee Stocking Island, for comparison to Fitt et al. 2000.
 % cell 366, 
-keyReefs = [];
+%keyReefs = [];
 %
 %keyReefs = [106 144 402 420 610 793 1354 1463 1541 1638];
 % Reefs that give good matches between 12/13 and original bleaching: 951, 1001
@@ -161,13 +168,19 @@ keyReefs = [];
 %keyReefs = [225 230 231 232 233 234 238 239 240 241 244 245 246 247 248];
 %keyReefs = [610 1463];
 %keyReefs = [144];
-%keyReefs = [402 610 823 1463];
+keyReefs = [144];
 
 % Reefs with the earliest mortality in the rcp85, E=1 case are listed below.  All
 % experi3.53ence 5 years of mortality by 2012.
 %  29  30  47  48  68  69  98  99 482 1903 1904
 % These reefs reach the same condition in 2099
 % 199         990        1738
+
+% Most scriptVars are applied earlier, but do keyReefs here, after any
+% manual entries and before they are used.
+if exist('scriptVars', 'var')
+    if isfield(scriptVars, 'keyReefs'); keyReefs = scriptVars.keyReefs; end
+end
 
 % Put them in order without duplicates.  Shouldn't matter, but why not?
 keyReefs = unique(keyReefs);
@@ -184,9 +197,15 @@ dataReefs = [];
 % > 0 tries to start the requested number of workers, failing if the value
 %     is greater than the value specified in Matlab's Parallel Preferences.
 if exist('useTestThreads', 'var')
+    fprintf('%d Threads from useTestThreads\n', useTestThreads);
     % Scripts can provide this variable to compare speed versus threads.
     [multiThread, queueMax] = parallelSetup(useTestThreads);
+elseif  exist('scriptVars', 'var') && isfield(scriptVars, 'useTestThreads')
+    fprintf('%d Threads from scriptVars.useTestThreads\n', scriptVars.useTestThreads);
+    [multiThread, queueMax] = parallelSetup(scriptVars.useTestThreads);
 else
+        fprintf('%d Threads from defaultThreads\n', defaultThreads);
+    
     % defaultThreads is set in useComputer for each user's computers.
     % 1 is not normally used.  0 means to run sequentially.
     [multiThread, queueMax] = parallelSetup(defaultThreads);
@@ -335,18 +354,25 @@ assert(length(startSymFractions) == coralSymConstants.Sn, ...
     'Symbiont start fractions should match number of symbionts.');
 
 % Define the seed values below which populations are not allowed to drop.
+
 % original:
-% C_seed = [0.1*10^7 0.01*10^7]; % mass branch
+%{
+C_seed = [0.1*10^7 0.01*10^7]; % mass branch
+% original:
+S_seed = [0.1*10^6 0.1*10^6 0.1*10^6 0.1*10^6];  % This was a single value until 2/17/2017
+%}
+
+% NEW SEEDS:
 % 1% of K for massive and 0.1% for branching corals.
 % The values are 741,250 and 102,500 square cm of coral per 625 square m of reef.
 C_seed = [coralSymConstants.KCm*0.01 coralSymConstants.KCb*0.001];
-% original:
-% S_seed = [0.1*10^6 0.1*10^6 0.1*10^6 0.1*10^6];  % This was a single value until 2/17/2017
+
 % 10^-5 % of seed, based on having corals at their seed levels as well.
 % The values are 222,375 and 41,000 cells per 625 square meters of reef.
 msSeed = 10^-7 * coralSymConstants.KSm * C_seed(1);
 bsSeed = 10^-7 * coralSymConstants.KSb * C_seed(2);
 S_seed = [msSeed bsSeed msSeed bsSeed];
+
 
 % Mutational Variance w (E=1) and w/o Evolution (E=0)
 if E==0
@@ -445,7 +471,13 @@ parfor (parSet = 1:queueMax, parSwitch)
     %  fprintf('In parfor set %d\n', parSet);
     reefCount = 0;
     % How often to print progress.
-    printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last digit is the number of pieces to report.
+    %printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last digit is the number of pieces to report.
+    % More often for progress bar
+    if doProgressBar
+        printFreq = max(2, ceil(length(toDoPart{parSet})/20)); % The last number is the number of pieces to report.
+    else
+        printFreq = max(10, ceil(length(toDoPart{parSet})/4)); % The last number is the number of pieces to report.
+    end
 
     % Variables to collect and return, since parfor won't allow direct
     % insertion into an output array.
@@ -598,11 +630,23 @@ parfor (parSet = 1:queueMax, parSwitch)
         par_mortState(reefCount, :, :) = mortStateOne;
 
         if parSwitch && mod(reefCount, printFreq) == 0
-            fprintf('Set %d is %3.0f percent complete.\n', parSet, (100*reefCount/length(toDoPart{parSet})));
+            pct = (100*reefCount/length(toDoPart{parSet}));
+            if  doProgressBar
+                pf = fopen(strcat('gui_scratch/Prog_', num2str(parSet)), 'w');
+                fprintf(pf, '%d', round(pct));
+                fclose(pf);
+            else
+                fprintf('Set %d is %3.0f percent complete.\n', parSet, pct);
+            end
         end
 
     end % End of reef areas for one parallel chunk
-
+    % File access for progress bars.  Delete this if it doesn't prove
+    % useful.
+    pf = fopen(strcat('gui_scratch/Prog_', num2str(parSet)), 'w');
+    fprintf(pf, '%d', 100);
+    fclose(pf);
+    
     bleachEvents_chunk{parSet} = par_bleachEvents;
     bleachState_chunk{parSet} = par_bleachState;
     mortState_chunk{parSet} = par_mortState;
@@ -779,6 +823,7 @@ end % End postprocessing block.
 elapsed = toc(timerStart);
 logTwo('Finished in %7.1f seconds.\n', elapsed);
 logTwo('Finished at %s\n', datestr(now));
+fclose(echoFile);
 
 %% After each run, update an excel file with descriptive information.
 % 1) There seems to be no easy way to know the number of rows in the file, so
@@ -796,5 +841,5 @@ if (~exist('optimizerMode', 'var') || optimizerMode == false) && ...
         Bleaching_85_10_By_Event, bleachParams, pswInputs);
 end
 %% Cleanup
-fclose('all'); % Just the file used by logTwo, normally.
+fclose('all'); % Just in case some file was left open.
 clearvars SST Omega_factor

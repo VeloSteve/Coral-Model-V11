@@ -27,7 +27,7 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
             cd('/Users/cheryllogan/');  % laptop
         case 3
             %clc;
-            defaultThreads = 6;
+            defaultThreads = 5;
             top = 'D:/GitHub/';
             basePath = strcat(top, 'Coral-Model-V11/');
             sharedData = strcat(top, 'Coral-Model-Data/');
@@ -35,7 +35,7 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
             outputPath = 'D:/CoralTest/V11Test/';  % C: for SSD D: for non-google directory
             %outputPath =  'D:/GoogleDrive/Coral_Model_Steve/Outputs_May8_May17/';
         case 4
-            defaultThreads = 3;
+            defaultThreads = 5;
             top = 'C:\Users\list.DESKTOP-6A5PUNV\Google Drive\Coral_Model_Steve\';
             basePath = strcat(top, 'SymbiontGenetics_V9_DualSymbiont/');
             outputPath = 'C:/Users/list.DESKTOP-6A5PUNV/Google Drive/Coral_Model_Steve/April17Output/';

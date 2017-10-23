@@ -1,7 +1,7 @@
 function BHSCO()
 %relPath = '../bleaching_history/';
 %relPath = 'D:/CoralTest/V11Test_SC/bleaching/';
-relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_Target_5_SquaredOAFactor\';
+relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_NewK_NewSeed_Target5\';
 
 topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 
@@ -35,13 +35,13 @@ for i = 1:4
     hFile = '';
     for eee = 0:1
         for ooo = 1:-1:0           
-            if ~(eee == 0 && ooo == 1)  % Skip one curve
+            %if ~(eee == 0 && ooo == 1)  % Skip one curve
                 hFile = strcat(relPath, 'BleachingHistory', rrr, 'E=', num2str(eee), 'OA=', num2str(ooo), '.mat');
                 load(hFile, 'yForPlot');
                 cases = [cases; yForPlot];
                 legText{legCount} = strcat('E = ', num2str(eee), ' OA = ', num2str(ooo));
                 legCount = legCount + 1;
-            end
+            %end
         end
     end
     % x values are the same for all. Use the latest file;

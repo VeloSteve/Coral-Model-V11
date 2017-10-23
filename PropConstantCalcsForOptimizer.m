@@ -36,7 +36,7 @@ SSThist = SST_1861_2000;
 %% Store optimizer inputs from propInputValues with any constant values to be computed.
 pswInputs(:,1) = propInputValues';
 
-% Updated 9/20/2017, target 10% with first 3 parameters fixed to the same
+%% Updated 9/20/2017, target 10% with first 3 parameters fixed to the same
 % values as the 5% cases numbered 20 to 27.
 %  === For 10% target ===
 pswInputs(:,2) = [0.36; 1.5; 0.46; 6.4367];  % RCP 2.6, E=0
@@ -48,7 +48,7 @@ pswInputs(:,7) = [0.36; 1.5; 0.46; 7.1389];  % RCP 6.0, E=1
 pswInputs(:,8) = [0.36; 1.5; 0.46; 6.5233];  % RCP 8.5, E=0
 pswInputs(:,9) = [0.36; 1.5; 0.46; 7.1189];  % RCP 8.5, E=1
 
-% Updated 9/19/2017, as for 10%
+%% Updated 9/19/2017, as for 10%
 %  === For 3% target ===
 pswInputs(:,10) = [0.36; 1.5; 0.46; 3.7633];  % RCP 2.6, E=0
 pswInputs(:,11) = [0.36; 1.5; 0.46; 4.2711];  % RCP 2.6, E=1
@@ -59,7 +59,7 @@ pswInputs(:,15) = [0.36; 1.5; 0.46; 4.3533];  % RCP 6.0, E=1
 pswInputs(:,16) = [0.36; 1.5; 0.46; 3.7778];  % RCP 8.5, E=0
 pswInputs(:,17) = [0.36; 1.5; 0.46; 4.2933];  % RCP 8.5, E=1
 
-% 9/19/2017  Adjust for new seed values divisors are larger by about 0.61
+%% 9/19/2017  Adjust for new seed values divisors are larger by about 0.61
 % === For 5% target ===
 pswInputs(:,20) = [0.36; 1.5; 0.46; 4.8356];  % RCP 2.6, E=0
 pswInputs(:,21) = [0.36; 1.5; 0.46; 4.8444];  % RCP 8.5, E=0
@@ -71,7 +71,7 @@ pswInputs(:,25) = [0.36; 1.5; 0.46; 4.8700];  % RCP 6.0, E=0
 pswInputs(:,26) = [0.36; 1.5; 0.46; 5.4411];  % RCP 4.5, E=1
 pswInputs(:,27) = [0.36; 1.5; 0.46; 5.3756];  % RCP 6.0, E=1
 
-% New on 9/6/2017
+%% New on 9/6/2017
 % XXX NOT UPDATED FOR NEW SEED - CAN'T GET THERE!
 %  === For 15% target ===
 pswInputs(:,28) = [0.36; 1.5; 0.46; 6.9778];  % RCP 2.6, E=0

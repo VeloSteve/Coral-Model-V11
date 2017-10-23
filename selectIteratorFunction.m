@@ -41,6 +41,15 @@ function handle =  selectIteratorFunction(select, Computer)
             handle = @timeIteration;
             mexName = '';
     end
+    
+    %
+    % NOTE: If the underlying files are edited for debugging, the timestamp
+    % gets updated and the mex files won't be used.  This is good for
+    % debugging, but bad when you go back to normal.  I Git reversion does
+    % NOT roll back the timestamp.  To do that i windows you can use
+    % powershell from a command prompt and then something like this:
+    % $(Get-Item .\Runge_Kutta_2_min0_160914.m).lastwritetime=$(Get-Date "8/8/2017 11:01 am")
+    %
     if ~isempty(mexName)
         mexFile = dir(strcat(mexName,'.mexw64'));
         if isempty(mexFile)

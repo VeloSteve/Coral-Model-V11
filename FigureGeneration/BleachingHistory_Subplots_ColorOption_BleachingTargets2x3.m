@@ -17,7 +17,7 @@ targets = [3 5 10];
 legText = {};
 legCount = 1;
 for t = 1:length(targets)
-    relPath = strcat('D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_Target_', num2str(targets(t)), '_SquaredOAFactor\');
+    relPath = strcat('D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_NewSeed_Target', num2str(targets(t)), '\');
 
     for i = 1:length(rcpList)
         rrr = rcpList{i};

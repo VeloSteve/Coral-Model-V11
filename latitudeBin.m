@@ -6,11 +6,11 @@ function [ subset ] = latitudeBin( ex, latlon )
 % are supplied the indexes equal reef cell numbers.  if a subset of latlon is
 % supplied, relative indexes are returned.
     if strcmp(ex, 'eq')
-        toDo = find(abs(latlon(:, 2))<=7)';
+        subset = find(abs(latlon(:, 2))<=7)';
     elseif strcmp(ex, 'lo')
-        toDo = find(abs(latlon(:, 2))<=14 & abs(latlon(:, 2)) > 7)';
+        subset = find(abs(latlon(:, 2))<=15 & abs(latlon(:, 2)) > 7)';
     elseif strcmp(ex, 'hi')
-        toDo = find(abs(latlon(:, 2))>14)';
+        subset = find(abs(latlon(:, 2))>15)';
     else
         error('ERROR: everyx = %s was not one of the supported strings.', ex);
     end
