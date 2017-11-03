@@ -6,4 +6,6 @@
 *.fig
 *.gif
 *.psd
+*.jpg
 codegen/*
+gui_scratch/*
