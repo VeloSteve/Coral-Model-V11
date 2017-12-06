@@ -49,6 +49,15 @@ function [ ] = saveExcelHistory( basePath, now, RCP, E, everyx, queueMax, ...
         mat = [matHeader; mat];
     end
     range = strcat('A', num2str(oldLines+1));
-    xlswrite(filename, mat, sheet, range);
+    % In the absence of proper write-locking, try twice.  That should be
+    % enough to get around most race conditions when the amount of time
+    % spent writing these is tiny compared to the computation time.
+    
+    [status, message] = xlswrite(filename, mat, sheet, range);
+    % success = 1.
+    if status == 0
+        fprintf('xls file could not be written.  Trying once more.\nError: %s', message);
+        xlswrite(filename, mat, sheet, range);
+    end
 end
 

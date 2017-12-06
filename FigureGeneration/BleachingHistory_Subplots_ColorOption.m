@@ -1,9 +1,9 @@
 function BHSCO()
 %relPath = '../bleaching_history/';
 %relPath = 'D:/CoralTest/V11Test_SC/bleaching/';
-relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_NewK_NewSeed_Target5\';
+relPath = 'D:\GoogleDrive\Coral_Model_Steve\_Paper Versions\Figures\Survival4Panel\bleaching_WithSuper+1\';
 
-topNote = ''; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
+topNote = 'With 1C supersymbionts'; %  {'5% Bleaching Target for 1985-2010', 'Original OA Factor CUBED'};
 
 figure('color', 'w');
 set(gcf, 'Units', 'inches', 'Position', [1, 1.5, 17, 11]);

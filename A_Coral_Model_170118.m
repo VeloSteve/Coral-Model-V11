@@ -30,19 +30,19 @@ maxReefs = 1925;  %never changes, but used below.
 %% Variables for plotting, debugging, or speed testing
 doDormandPrince = false; % Use Prince-Dormand solver AND ours (for now)
 skipPostProcessing = false;     % Don't do final stats and plots when timing.
-everyx = 10; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
+everyx = 1; % 1;   % run code on every x reefs, plus "keyReefs" if everyx is
                     % one of 'eq', 'lo', 'hi' it selects reefs for abs(latitude)
                     % bins [0,7], (7, 14], or (14,90] respectively.  Also,
                     % if everyx >= 10000, only do reefs specifed in
                     % keyReefs
-allPDFs = false;                % if false, just prints for keyReefs.
+allPDFs = true;                % if false, just prints for keyReefs.
 doPlots = true;                 % For optimization runs, turn off all plotting regardless
                                 % of the individual flags below.
 doCoralCoverMaps = true;        % World maps of cover, survival, etc. 
 doCoralCoverFigure = true;     % Plot cover vs. time
 doGenotypeFigure = false;
 doGrowthRateFigure = false;
-doDetailedStressStats = false;
+doDetailedStressStats = true;
 saveEvery = 5000;               % How often to save stillrunning.mat. Not related to everyx.
 saveVarianceStats = false;      % Only when preparing to plot selV, psw2, and SST variance.
 
@@ -304,11 +304,17 @@ if OA == 1
     % Convert omegas to growth-factor multipliers so there's
     % less logic inside the time interations.
     [Omega_factor] = omegaToFactor(Omega_all);
+    % TEMPORARY:
+    OFmean = mean(Omega_factor, 1);
+    %Plot_ArbitraryYvsYears(OFmean, TIME, 'Omega Effect on Growth', 'Growth rate factor');
+    Omean = mean(Omega_all, 1);
+    %Plot_ArbitraryYvsYears(Omean, TIME, 'Omega vs Time', 'Aragonite saturation state')
 else
     % Wasteful to make a big empty array, but it makes entering the
     % parallel loop simpler.  Note that only the last value is set.
     Omega_factor(maxReefs, lenTIME) = 0.0;
 end
+disp('dummy');
 clearvars Omega_all;
 
 %% SUB-SAMPLE REEF GRID CELLS
@@ -465,6 +471,7 @@ end
 %% RUN EVOLUTIONARY MODEL
 iteratorHandle = selectIteratorFunction(length(time), Computer);
 % the last argument in the parfor specifies the maximum number of workers.
+timerStartParfor = tic;
 parfor (parSet = 1:queueMax, parSwitch)
 %for parSet = 1:queueMax
     %  pause(1); % Without this pause, the fprintf doesn't display immediately.
@@ -561,6 +568,9 @@ parfor (parSet = 1:queueMax, parSwitch)
                     ri, temp, OA, omega, vgi, gi, MutVx, SelVx, C_seed, S_seed, suppressSI, ...
                     superSeedFraction, oneShot, coralSymConstants); %#ok<PFBNS>
 
+        %Plot_ArbitraryYvsYears(ri(:,1), time, strcat('Temperature Effect on Growth, k = ', num2str(k)), 'Growth rate factor')
+
+                    
         % These, with origEvolved, compare the average native and
         % supersymbiont genotypes with the evolved state of the native
         % symbionts just before the supersymbionts are introduced.
@@ -659,6 +669,8 @@ parfor (parSet = 1:queueMax, parSwitch)
 
 
 end % End of parfor loop
+elapsedParfor = toc(timerStartParfor);
+
 % Clear variables used only as inputs inside the loop.
 clearvars SST_chunk Omega_chunk LatLon_chunk;
 
@@ -821,7 +833,9 @@ if ~skipPostProcessing
 end % End postprocessing block.
 
 elapsed = toc(timerStart);
-logTwo('Finished in %7.1f seconds.\n', elapsed);
+logTwo('Parallel section: %7.1f seconds.\n', elapsedParfor);
+logTwo('Serial sections:  %7.1f seconds.\n', elapsed-elapsedParfor);
+logTwo('Finished in       %7.1f seconds.\n', elapsed);
 logTwo('Finished at %s\n', datestr(now));
 fclose(echoFile);
 

@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.coder" plugin-version="R2016a">
-  <configuration build-checksum="2653639341" file="D:\GitHub\Coral-Model-V11\timeIteration.prj" location="D:\GitHub\Coral-Model-V11" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
+  <configuration build-checksum="4278558116" file="D:\GitHub\Coral-Model-V11\timeIteration.prj" location="D:\GitHub\Coral-Model-V11" name="timeIteration" target="target.unifiedcoder" target-name="MATLAB Coder">
     <profile key="profile.mex">
       <param.BuiltInstrumentedMex>false</param.BuiltInstrumentedMex>
       <param.RanInstrumentedMex>false</param.RanInstrumentedMex>
@@ -16,6 +16,8 @@
       <param.EnableVariableSizing>true</param.EnableVariableSizing>
       <param.DynamicMemoryAllocation>option.DynamicMemoryAllocation.Threshold</param.DynamicMemoryAllocation>
       <param.DynamicMemoryAllocationThreshold>65536</param.DynamicMemoryAllocationThreshold>
+      <param.RowMajor>option.RowMajor.ColumnMajor</param.RowMajor>
+      <param.HighlightPotentialRowMajorIssues>false</param.HighlightPotentialRowMajorIssues>
       <param.StackUsageMax>200000</param.StackUsageMax>
       <param.FilePartitionMethod>option.FilePartitionMethod.MapMFileToCFile</param.FilePartitionMethod>
       <param.GenerateComments>true</param.GenerateComments>
@@ -24,6 +26,7 @@
       <param.EnableDebugging>false</param.EnableDebugging>
       <param.GenerateReport>true</param.GenerateReport>
       <param.LaunchReport>false</param.LaunchReport>
+      <param.ReportPotentialDifferences>false</param.ReportPotentialDifferences>
       <param.DefaultTestFile />
       <param.MergeInstrumentationResults>false</param.MergeInstrumentationResults>
       <param.VerificationMode>option.VerificationMode.None</param.VerificationMode>
@@ -71,6 +74,8 @@
         <param.EnableVariableSizing />
         <param.DynamicMemoryAllocation />
         <param.DynamicMemoryAllocationThreshold />
+        <param.RowMajor />
+        <param.HighlightPotentialRowMajorIssues />
         <param.StackUsageMax />
         <param.FilePartitionMethod />
         <param.GenerateComments />
@@ -79,6 +84,7 @@
         <param.EnableDebugging />
         <param.GenerateReport />
         <param.LaunchReport />
+        <param.ReportPotentialDifferences />
         <param.DefaultTestFile />
         <param.MergeInstrumentationResults />
         <param.VerificationMode />
@@ -124,6 +130,8 @@
       <param.EnableVariableSizing>true</param.EnableVariableSizing>
       <param.DynamicMemoryAllocation>option.DynamicMemoryAllocation.Threshold</param.DynamicMemoryAllocation>
       <param.DynamicMemoryAllocationThreshold>65536</param.DynamicMemoryAllocationThreshold>
+      <param.RowMajor>option.RowMajor.ColumnMajor</param.RowMajor>
+      <param.HighlightPotentialRowMajorIssues>false</param.HighlightPotentialRowMajorIssues>
       <param.StackUsageMax>200000</param.StackUsageMax>
       <param.MultiInstanceCode>false</param.MultiInstanceCode>
       <param.FilePartitionMethod>option.FilePartitionMethod.MapMFileToCFile</param.FilePartitionMethod>
@@ -154,7 +162,10 @@
       <param.GenerateCodeReplacementReport>false</param.GenerateCodeReplacementReport>
       <param.HighlightPotentialDataTypeIssues>false</param.HighlightPotentialDataTypeIssues>
       <param.LaunchReport>false</param.LaunchReport>
+      <param.ReportPotentialDifferences>false</param.ReportPotentialDifferences>
       <param.SILDebugging>false</param.SILDebugging>
+      <param.SILPILCheckConstantInputs>true</param.SILPILCheckConstantInputs>
+      <param.SILPILSyncGlobalData>true</param.SILPILSyncGlobalData>
       <param.CodeExecutionProfiling>false</param.CodeExecutionProfiling>
       <param.DefaultTestFile />
       <param.MergeInstrumentationResults>false</param.MergeInstrumentationResults>
@@ -171,19 +182,19 @@
       <param.PostCodeGenCommand />
       <param.TargetLangStandard>C89/C90 (ANSI)</param.TargetLangStandard>
       <param.CodeReplacementLibrary>None</param.CodeReplacementLibrary>
-      <param.DeprecatedCRLFlag />
+      <param.DeprecatedCRLFlag>false</param.DeprecatedCRLFlag>
       <param.SameHardware>true</param.SameHardware>
       <param.Toolchain>Automatically locate an installed toolchain</param.Toolchain>
       <param.BuildConfiguration>Faster Builds</param.BuildConfiguration>
       <param.CustomToolchainOptions />
-      <var.ToolchainSettingsVisible />
+      <var.ToolchainSettingsVisible>true</var.ToolchainSettingsVisible>
       <param.target.Data />
       <param.target.ActiveType>option.target.TargetType.MatlabHost</param.target.ActiveType>
       <param.target.ActiveTarget />
       <param.HardwareVendor.Production>Generic</param.HardwareVendor.Production>
       <param.HardwareType.Production>MATLAB Host Computer</param.HardwareType.Production>
-      <param.HWDeviceType.Production />
-      <var.instance.enabled.Production />
+      <param.HWDeviceType.Production>Generic-&gt;MATLAB Host Computer</param.HWDeviceType.Production>
+      <var.instance.enabled.Production>true</var.instance.enabled.Production>
       <param.HardwareSizeChar.Production>8</param.HardwareSizeChar.Production>
       <param.HardwareSizeShort.Production>16</param.HardwareSizeShort.Production>
       <param.HardwareSizeInt.Production>32</param.HardwareSizeInt.Production>
@@ -203,7 +214,7 @@
       <param.HardwareDivisionRounding.Production>option.HardwareDivisionRounding.Zero</param.HardwareDivisionRounding.Production>
       <param.HardwareVendor.Target>Generic</param.HardwareVendor.Target>
       <param.HardwareType.Target>MATLAB Host Computer</param.HardwareType.Target>
-      <param.HWDeviceType.Target />
+      <param.HWDeviceType.Target>Generic-&gt;MATLAB Host Computer</param.HWDeviceType.Target>
       <var.instance.enabled.Target>false</var.instance.enabled.Target>
       <param.HardwareSizeChar.Target>8</param.HardwareSizeChar.Target>
       <param.HardwareSizeShort.Target>16</param.HardwareSizeShort.Target>
@@ -232,12 +243,12 @@
       <param.GenerateExampleMain>option.GenerateExampleMain.GenerateCodeOnly</param.GenerateExampleMain>
       <param.PreserveVariableNames>option.PreserveVariableNames.None</param.PreserveVariableNames>
       <param.TargetLang>option.TargetLang.C</param.TargetLang>
-      <param.CCompilerOptimization />
+      <param.CCompilerOptimization>option.CCompilerOptimization.Off</param.CCompilerOptimization>
       <param.CCompilerCustomOptimizations />
       <param.GenerateMakefile>true</param.GenerateMakefile>
       <param.BuildToolEnable>false</param.BuildToolEnable>
-      <param.MakeCommand />
-      <param.TemplateMakefile />
+      <param.MakeCommand>make_rtw</param.MakeCommand>
+      <param.TemplateMakefile>default_tmf</param.TemplateMakefile>
       <param.BuildToolConfiguration />
       <param.InlineThreshold>10</param.InlineThreshold>
       <param.InlineThresholdMax>200</param.InlineThresholdMax>
@@ -249,6 +260,8 @@
       <param.InitFltsAndDblsToZero>true</param.InitFltsAndDblsToZero>
       <param.PassStructByReference>true</param.PassStructByReference>
       <param.CustomLAPACKCallback />
+      <param.CustomFFTCallback />
+      <param.GenerateDefaultInSwitch>false</param.GenerateDefaultInSwitch>
       <param.UseECoderFeatures>false</param.UseECoderFeatures>
       <unset>
         <param.WorkingFolder />
@@ -262,6 +275,8 @@
         <param.EnableVariableSizing />
         <param.DynamicMemoryAllocation />
         <param.DynamicMemoryAllocationThreshold />
+        <param.RowMajor />
+        <param.HighlightPotentialRowMajorIssues />
         <param.StackUsageMax />
         <param.MultiInstanceCode />
         <param.FilePartitionMethod />
@@ -292,7 +307,10 @@
         <param.GenerateCodeReplacementReport />
         <param.HighlightPotentialDataTypeIssues />
         <param.LaunchReport />
+        <param.ReportPotentialDifferences />
         <param.SILDebugging />
+        <param.SILPILCheckConstantInputs />
+        <param.SILPILSyncGlobalData />
         <param.CodeExecutionProfiling />
         <param.DefaultTestFile />
         <param.MergeInstrumentationResults />
@@ -373,6 +391,8 @@
         <param.InitFltsAndDblsToZero />
         <param.PassStructByReference />
         <param.CustomLAPACKCallback />
+        <param.CustomFFTCallback />
+        <param.GenerateDefaultInSwitch />
         <param.UseECoderFeatures />
       </unset>
     </profile>
@@ -721,16 +741,17 @@
       </unset>
     </profile>
     <param.objective>option.objective.c</param.objective>
-    <param.WorkflowStep>generateCode</param.WorkflowStep>
+    <param.WorkflowStep>workflowSummary</param.WorkflowStep>
     <param.TestSnippets>
       <item>A_Coral_Model_170118</item>
     </param.TestSnippets>
     <param.DefaultImportExportVariable>config</param.DefaultImportExportVariable>
-    <param.RowMajor>false</param.RowMajor>
+    <param.ExternalFcnMajority>column</param.ExternalFcnMajority>
     <param.UseGlobals>option.UseGlobals.No</param.UseGlobals>
     <param.outputfile>${PROJECT_ROOT}\codegen\lib\timeIteration\timeIteration.lib</param.outputfile>
     <param.version>R2012a</param.version>
     <param.HasECoderFeatures>false</param.HasECoderFeatures>
+    <param.HasGpuCoder>false</param.HasGpuCoder>
     <param.mex.mainhtml />
     <param.grt.mainhtml />
     <param.CallGeneratedCodeFromTest>true</param.CallGeneratedCodeFromTest>
@@ -741,24 +762,26 @@
     <param.AutoInferUnboundedSizeThreshold>2048</param.AutoInferUnboundedSizeThreshold>
     <param.EnableFixedPointStep>false</param.EnableFixedPointStep>
     <param.EnableScreener>true</param.EnableScreener>
-    <param.AnnotationChecksum>2834961229</param.AnnotationChecksum>
+    <param.AnnotationChecksum>1558658694</param.AnnotationChecksum>
     <var.LegacyTarget />
     <var.MirrorOnOpen>false</var.MirrorOnOpen>
     <param.FixedPointEnabled>false</param.FixedPointEnabled>
     <var.redirectedInputTypeData />
-    <var.DismissScreener>true</var.DismissScreener>
+    <var.DismissScreener>false</var.DismissScreener>
     <param.unifiedParamStorage />
-    <var.gc.lastOutputRoot />
-    <var.gc.lastOutputType />
-    <var.gc.preBuildChecksum />
+    <var.gc.lastOutputRoot>codegen\lib\timeIteration</var.gc.lastOutputRoot>
+    <var.gc.lastOutputType>C_CODE</var.gc.lastOutputType>
+    <var.gc.preBuildChecksum>1775403527</var.gc.preBuildChecksum>
     <var.cfi.lastOutputRoot>codegen\mex\timeIteration</var.cfi.lastOutputRoot>
-    <var.cfi.preBuildChecksum>2542495592</var.cfi.preBuildChecksum>
+    <var.cfi.preBuildChecksum>3142230073</var.cfi.preBuildChecksum>
     <var.lastCfiTestSnippet>A_Coral_Model_170118</var.lastCfiTestSnippet>
     <var.outdatedOnRestore>false</var.outdatedOnRestore>
-    <var.lastUserSourceChecksum />
+    <var.lastUserSourceChecksum>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;checksum&gt;&lt;includedFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V11\Runge_Kutta_2_min0_160914.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V11\timeIteration.m&lt;/file&gt;&lt;/includedFiles&gt;&lt;value&gt;3297706354&lt;/value&gt;&lt;/checksum&gt;</var.lastUserSourceChecksum>
     <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;D:\GitHub\Coral-Model-V11\Runge_Kutta_2_min0_160914.m&lt;/file&gt;&lt;file&gt;D:\GitHub\Coral-Model-V11\timeIteration.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
     <param.forceMexBuild>false</param.forceMexBuild>
     <param.configImportActive>false</param.configImportActive>
+    <var.isGpuCoder>false</var.isGpuCoder>
+    <var.notGpuCoder>true</var.notGpuCoder>
     <var.boundToGui>true</var.boundToGui>
     <param.mex.outputfile>timeIteration_mex</param.mex.outputfile>
     <param.grt.outputfile>timeIteration</param.grt.outputfile>
@@ -805,18 +828,35 @@
     <param.fpDataRoot />
     <param.fpUserFileChecksum />
     <var.snapshotChecksum />
+    <param.fpLastConvertChecksum />
     <var.functionBlockSid />
     <param.fptSignedness>false</param.fptSignedness>
     <var.FixedPointAnalysisMode>option.FixedPointAnalysisMode.Sim</var.FixedPointAnalysisMode>
     <param.FixedPointUseDesignRanges>false</param.FixedPointUseDesignRanges>
+    <param.gpu.Enabled>false</param.gpu.Enabled>
+    <param.gpu.KernelNamePrefix />
+    <param.gpu.MallocMode />
+    <param.gpu.MallocThreshold>200</param.gpu.MallocThreshold>
+    <param.gpu.StackLimitPerThread>1024</param.gpu.StackLimitPerThread>
+    <param.gpu.EnableCUBLAS>false</param.gpu.EnableCUBLAS>
+    <param.gpu.EnableCUSOLVER>false</param.gpu.EnableCUSOLVER>
+    <param.gpu.EnableCUFFT>false</param.gpu.EnableCUFFT>
+    <param.gpu.Benchmarking>false</param.gpu.Benchmarking>
+    <param.gpu.SafeBuild>false</param.gpu.SafeBuild>
+    <param.gpu.ComputeCapability />
+    <param.gpu.CustomComputeCapability />
+    <param.gpu.CompilerFlags />
+    <var.checkIssuesGpu>false</var.checkIssuesGpu>
+    <var.hasGpu>true</var.hasGpu>
     <unset>
       <param.objective />
       <param.DefaultImportExportVariable />
-      <param.RowMajor />
+      <param.ExternalFcnMajority />
       <param.UseGlobals />
       <param.outputfile />
       <param.version />
       <param.HasECoderFeatures />
+      <param.HasGpuCoder />
       <param.mex.mainhtml />
       <param.grt.mainhtml />
       <param.CallGeneratedCodeFromTest />
@@ -831,14 +871,13 @@
       <var.MirrorOnOpen />
       <param.FixedPointEnabled />
       <var.redirectedInputTypeData />
+      <var.DismissScreener />
       <param.unifiedParamStorage />
-      <var.gc.lastOutputRoot />
-      <var.gc.lastOutputType />
-      <var.gc.preBuildChecksum />
       <var.outdatedOnRestore />
-      <var.lastUserSourceChecksum />
       <param.forceMexBuild />
       <param.configImportActive />
+      <var.isGpuCoder />
+      <var.notGpuCoder />
       <param.mex.outputfile />
       <param.grt.outputfile />
       <param.EnableAutoExtrinsicCalls />
@@ -881,14 +920,30 @@
       <param.fpDataRoot />
       <param.fpUserFileChecksum />
       <var.snapshotChecksum />
+      <param.fpLastConvertChecksum />
       <var.functionBlockSid />
       <param.fptSignedness />
       <var.FixedPointAnalysisMode />
       <param.FixedPointUseDesignRanges />
+      <param.gpu.Enabled />
+      <param.gpu.KernelNamePrefix />
+      <param.gpu.MallocMode />
+      <param.gpu.MallocThreshold />
+      <param.gpu.StackLimitPerThread />
+      <param.gpu.EnableCUBLAS />
+      <param.gpu.EnableCUSOLVER />
+      <param.gpu.EnableCUFFT />
+      <param.gpu.Benchmarking />
+      <param.gpu.SafeBuild />
+      <param.gpu.ComputeCapability />
+      <param.gpu.CustomComputeCapability />
+      <param.gpu.CompilerFlags />
+      <var.checkIssuesGpu />
+      <var.hasGpu />
     </unset>
     <fileset.entrypoints>
       <file custom-data-expanded="false" value="${PROJECT_ROOT}\timeIteration.m">
-        <Marker>1502403875185</Marker>
+        <Marker>1509301427713</Marker>
       </file>
     </fileset.entrypoints>
     <fileset.testbench>
@@ -896,7 +951,7 @@
     </fileset.testbench>
     <fileset.inputtypes>
       <file custom-data-expanded="false" value="${PROJECT_ROOT}\timeIteration.m">
-        <Inputs fileName="timeIteration.m" functionName="timeIteration">
+        <Inputs fileName="timeIteration.m" functionName="timeIteration" nargout="6">
           <Input Name="timeSteps" typeId="0" />
           <Input Name="S" typeId="1" />
           <Input Name="C" typeId="1" />
@@ -955,7 +1010,7 @@
             </type>
             <type typeId="1">
               <Class>double</Class>
-              <Size>38400 x 4</Size>
+              <Size>23040 x 4</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>
@@ -963,7 +1018,7 @@
             </type>
             <type typeId="2">
               <Class>double</Class>
-              <Size>38400 x 1</Size>
+              <Size>23040 x 1</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>
@@ -971,7 +1026,7 @@
             </type>
             <type typeId="3">
               <Class>double</Class>
-              <Size>1 x 38400</Size>
+              <Size>1 x 23040</Size>
               <Value />
               <InitialValue />
               <UserDefined>false</UserDefined>
@@ -1020,7 +1075,7 @@
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2016b</root>
+      <root>C:\Program Files\MATLAB\R2017b</root>
       <toolboxes>
         <toolbox name="matlabcoder" />
       </toolboxes>
