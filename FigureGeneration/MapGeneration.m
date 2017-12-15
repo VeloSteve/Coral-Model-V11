@@ -59,7 +59,7 @@ function [] = oneMap(n, lons, lats, values, cMap, t)
     latSort(1, 2) = latSort(2, 1)-latSort(1, 1);
     latSort(2:end-1, 2) = min(latSort(2:end-1, 1)-latSort(1:end-2, 1), latSort(3:end, 1)-latSort(2:end-1, 1));
     
-    % If a longitude location has no adjacent neighbor the cell will be to
+    % If a longitude location has no adjacent neighbor the cell will be too
     % wide.  Don't let a width value be more than 50% bigger than its neighbors.
     idx = find(longSort(2:end, 2) > 1.5*longSort(1:end-1, 2));
     idx = idx + 1;
