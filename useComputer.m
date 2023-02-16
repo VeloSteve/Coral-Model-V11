@@ -27,7 +27,7 @@ function [basePath, outputPath, sstPath, SGPath, matPath, n, defaultThreads] ...
             cd('/Users/cheryllogan/');  % laptop
         case 3
             %clc;
-            defaultThreads = 5;
+            defaultThreads = 8;
             top = 'D:/GitHub/';
             basePath = strcat(top, 'Coral-Model-V11/');
             sharedData = strcat(top, 'Coral-Model-Data/');
